@@ -91,10 +91,16 @@
                     <span class="caption">{{ trans("menu.action_plan") }}</span>
                 </a>
             </li>
-            <li class="{{ request()->is('risk*') ? 'active': '' }}">
-                <a href="/risk/matrix">
+            <li class="{{ request()->is('risk/index*') ? 'active': '' }}">
+                <a href="/risk/index">
                     <span class="icon mif-warning"></span>
                     <span class="caption">{{ trans("menu.risks") }}</span>
+                </a>
+            </li>
+            <li class="{{ request()->is('risk/matrix*') ? 'active': '' }}">
+                <a href="/risk/matrix">
+                    <span class="icon mif-grid"></span>
+                    <span class="caption">{{ trans("menu.risks_matrix") }}</span>
                 </a>
             </li>
             <li class="{{ request()->is('exceptions*') ? 'active': '' }}">

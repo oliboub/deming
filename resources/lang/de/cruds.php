@@ -365,9 +365,10 @@ return [
             'no_owner' => 'Nicht zugewiesen',
             'choose_owner' => 'Verantwortlichen wählen',
             'choose_status' => 'Status wählen',
+            'choose_level' => 'Stufe wählen',
 
             // Bewertung
-            'probability' => 'Wahrscheinlichkeit',
+            'probability' => 'Wskt.',
             'probability_comment' => 'Kommentar Wahrscheinlichkeit',
             'impact' => 'Auswirkung',
             'impact_comment' => 'Kommentar Auswirkung',
@@ -385,7 +386,7 @@ return [
             'actions_hint' => 'Erforderlich bei Status = Nicht akzeptiert',
 
             // Planung
-            'review_frequency' => 'Überprüfungshäufigkeit',
+            'review_frequency' => 'Üprf.-Häufgkt.',// 'Überprüfungshäufigkeit',
             'next_review' => 'Nächste Überprüfung',
             'overdue' => 'Überprüfung überfällig',
             'overdue_all' => 'Alle',

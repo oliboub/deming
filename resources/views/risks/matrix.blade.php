@@ -1,10 +1,102 @@
 @extends("layout")
 
 @section("content")
-<div data-role="panel" data-title-caption='{{ trans("cruds.risk.matrix") }}' data-collapsible="false" data-title-icon="<span class='mif-warning'></span>">
+<div data-role="panel"
+    data-title-caption='{{ trans("cruds.risk.matrix") }}'
+    data-collapsible="false"
+    data-title-icon="<span class='mif-grid'></span>">
 
-<div class="grid">
+    {{-- Filtres ----------------------------------------------------------------}}
+    <div class="grid mb-4">
+        <div class="row">
 
+            {{-- Statut --}}
+            <div class="cell-lg-2 cell-md-3">
+                <select id="filter-status" data-role="select">
+                    <option value="none">-- {{ trans("cruds.risk.fields.choose_status") }} --</option>
+                    @foreach (\App\Models\Risk::STATUS_LABELS as $value => $label)
+                        <option value="{{ $value }}"
+                                @if(($filters['status'] ?? '') === $value) selected @endif>
+                            {{ $label }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Propriétaire --}}
+            @if (Auth::user()->role !== 3)
+            <div class="cell-lg-2 cell-md-3">
+                <select id="filter-owner" data-role="select">
+                    <option value="none">-- {{ trans("cruds.risk.fields.choose_owner") }} --</option>
+                    @foreach ($owners as $owner)
+                        <option value="{{ $owner->id }}"
+                                @if(($filters['owner'] ?? '') == $owner->id) selected @endif>
+                            {{ $owner->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+
+            {{-- En retard --}}
+            <div class="cell-lg-2 cell-md-3 mt-2">
+                <input type="radio" data-role="radio"
+                       data-append="{{ trans('cruds.risk.fields.overdue_all') }}"
+                       value="0" id="overdue0"
+                       {{ ($filters['overdue'] ?? '0') === '0' ? 'checked' : '' }}>
+                <input type="radio" data-role="radio"
+                       data-append="{{ trans('cruds.risk.fields.overdue_only') }}"
+                       value="1" id="overdue1"
+                       {{ ($filters['overdue'] ?? '0') === '1' ? 'checked' : '' }}>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let ready = false;
+        window.addEventListener('load', () => {
+            requestAnimationFrame(() => requestAnimationFrame(() => { ready = true; }));
+        });
+
+        const getParam = (k) => new URLSearchParams(location.search).get(k) ?? '';
+
+        function navigate(patch = {}) {
+            const next = new URL('/risk/matrix', location.origin);
+            const all  = {
+                status  : document.getElementById('filter-status')?.value ?? getParam('status'),
+                owner   : document.getElementById('filter-owner')?.value  ?? getParam('owner'),
+                overdue : document.getElementById('overdue1')?.checked ? '1' : '0',
+                ...patch,
+            };
+            for (const [k, v] of Object.entries(all)) {
+                if (!v || v === 'none') next.searchParams.delete(k);
+                else next.searchParams.set(k, v);
+            }
+            if (next.toString() !== location.href) location.assign(next.toString());
+        }
+
+        const bindChange = (id, key) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('change', () => { if (ready) navigate({ [key]: el.value }); });
+        };
+
+        bindChange('filter-status', 'status');
+        bindChange('filter-owner',  'owner');
+
+        ['overdue0', 'overdue1'].forEach((id, i) => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', () => {
+                if (ready) navigate({ overdue: String(i) });
+            });
+        });
+    });
+    </script>
+    {{-- Fin filtres ------------------------------------------------------------}}
+
+    <div class="grid">
     {{-- Matrice --}}
     <div class="row">
         <div class="cell-lg-10 cell-md-12">
@@ -62,7 +154,7 @@
             </table>
             </div>
 
-            {{-- Légende --}}
+            {{-- Légende
             <div class="mt-2 d-flex gap-2">
                 @foreach ($scoringConfig->risk_thresholds as $i => $t)
                     @php
@@ -78,6 +170,7 @@
                     </a>
                 @endforeach
             </div>
+            --}}
         </div>
 
         {{-- Répartition par statut --}}
@@ -89,6 +182,9 @@
             </td>
             </tr>
             @foreach ($scoringConfig->risk_thresholds as $i => $t)
+            @php
+                $prevMax = $i > 0 ? $scoringConfig->risk_thresholds[$i-1]['max'] + 1 : 1;
+            @endphp
             <tr>
                 <td>
                     @if(($stats['by_level'][$i] ?? 0) > 0)
@@ -107,6 +203,8 @@
                             {{ $t['label'] }}
                         </span>
                     </a>
+                    @if ($t['max']) {{ $prevMax }}–{{ $t['max'] }}
+                    @else &gt; {{ $scoringConfig->risk_thresholds[$i-1]['max'] ?? 0 }} @endif
                 </td>
             </tr>
             @endforeach

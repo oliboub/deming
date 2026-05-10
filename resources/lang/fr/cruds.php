@@ -368,6 +368,7 @@ return [
             'no_owner'            => 'Non assigné',
             'choose_owner'        => 'Choisir un propriétaire',
             'choose_status'       => 'Choisir un statut',
+            'choose_level'        => 'Choisir un niveau',
 
             // Évaluation
             'probability'         => 'Probabilité',

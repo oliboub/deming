@@ -76,6 +76,7 @@ class RiskController extends Controller
 
         // Persister les filtres en session (comme Deming le fait pour bob/index)
         session([
+            'risk_threshold' => $request->input('threshold'),
             'risk_status'  => $request->input('status'),
             'risk_owner'   => $request->input('owner'),
             'risk_overdue' => $request->input('overdue', '0'),
@@ -198,9 +199,25 @@ class RiskController extends Controller
     // MATRIX
     // =========================================================================
 
-    public function matrix(): View
+    public function matrix(Request $request): View
     {
-        $risks = Risk::with('owner')->get();
+        $query = Risk::with('owner');
+
+        if ($request->filled('status') && array_key_exists($request->status, Risk::STATUS_LABELS)) {
+            $query->byStatus($request->status);
+        }
+
+        if ($request->filled('owner')) {
+            $query->ownedBy((int) $request->owner);
+        }
+
+        if ($request->boolean('overdue')) {
+            $query->overdue();
+        }
+
+        $risks  = $query->get();
+        $owners = User::query()->orderBy('name')->get();
+        $filters = $request->only(['status', 'owner', 'overdue']);
 
         $matrix = $this->scoringService->buildMatrix($risks);
         $xAxis  = $this->scoringService->matrixXAxis();
@@ -231,8 +248,13 @@ class RiskController extends Controller
 
         $scoringConfig = $this->scoringService->config();
 
-        return view('risks.matrix', compact('matrix', 'stats', 'scoringConfig', 'xAxis', 'yAxis'));
-    }
+        return view('risks.matrix',
+            compact('matrix',
+                'stats',
+                'scoringConfig',
+                'xAxis', 'yAxis',
+                'owners', 'filters'));
+     }
 
     // =========================================================================
     // Privé

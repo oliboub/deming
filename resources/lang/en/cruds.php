@@ -369,6 +369,7 @@ return [
             'no_owner'            => 'Unassigned',
             'choose_owner'        => 'Select an owner',
             'choose_status'       => 'Select a status',
+            'choose_level'        => 'Select level',
 
             // Assessment
             'probability'         => 'Probability',

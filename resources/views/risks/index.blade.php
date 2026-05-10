@@ -1,11 +1,28 @@
 @extends("layout")
 
 @section("content")
-<div data-role="panel" data-title-caption='{{ trans("cruds.risk.list") }}' data-collapsible="false" data-title-icon="<span class='mif-warning'></span>">
+<div data-role="panel"
+    data-title-caption='{{ trans("cruds.risk.list") }}'
+    data-collapsible="false"
+    data-title-icon="<span class='mif-warning'></span>">
 
     <div class="grid mb-2">
         <div class="row">
 
+            {{-- Filtre par niveau de risque --}}
+            <div class="cell-lg-2 cell-md-3">
+                <select id="filter-threshold" data-role="select">
+                    <option value="none">-- {{ trans("cruds.risk.fields.choose_level") }} --</option>
+                    @foreach ($scoringConfig->risk_thresholds as $idx => $t)
+                        <option value="{{ $idx }}"
+                                @if(Session::get('risk_threshold') !== null && (int)Session::get('risk_threshold') === $idx) selected @endif>
+                            {{ $t['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Filtre par statut --}}
             <div class="cell-lg-2 cell-md-3">
                 <select id="filter-status" data-role="select">
                     <option value="none">-- {{ trans("cruds.risk.fields.choose_status") }} --</option>
@@ -35,7 +52,7 @@
                 <input type="radio" data-role="radio" data-append="{{ trans('cruds.risk.fields.overdue_only') }}" value="1" id="overdue1" {{ Session::get('risk_overdue')==='1' ? 'checked' : '' }}>
             </div>
 
-            <div class="cell-lg-5 cell-md-1">
+            <div class="cell-lg-3 cell-md-1">
             </div>
 
             <div class="cell-lg-1 cell-md-1">
@@ -156,6 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function snapshotFilters() {
         return {
+            threshold : document.getElementById('filter-threshold')?.value ?? getParam('threshold'),
             status  : document.getElementById('filter-status')?.value ?? getParam('status'),
             owner   : document.getElementById('filter-owner')?.value  ?? getParam('owner'),
             overdue : document.getElementById('overdue1')?.checked ? '1' : '0',
@@ -181,6 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+    bindChange('filter-threshold', 'threshold');
     bindChange('filter-status', 'status');
     bindChange('filter-owner',  'owner');
 
