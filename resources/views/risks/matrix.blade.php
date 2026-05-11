@@ -132,7 +132,7 @@
                             $threshold = $scoringConfig->thresholdFor($score);
                             $thresholdIndex = $scoringConfig->thresholdIndexFor($score);
                             $bgColor   = $threshold['color'];
-                            $txtColor  = '#fff';
+                            $txtColor  = contrast_color($threshold['color']);
 
                             @endphp
                         <td style="background:{{ $bgColor }};color:{{ $txtColor }};padding:10px;vertical-align:middle;{{ $count > 0 ? 'cursor:pointer' : '' }}"

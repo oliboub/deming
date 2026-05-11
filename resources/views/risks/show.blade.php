@@ -144,12 +144,20 @@
             <strong>{{ trans("cruds.risk.fields.score") }}</strong>
         </div>
         <div class="cell-lg-6 cell-md-8">
-            @php $scoreThreshold = $scoringConfig->thresholdFor($risk->risk_score); @endphp
-            <span class="badge" style="font-size:1.1rem;background:{{ $scoreThreshold['color'] }};color:#fff">
+            @php
+                $score     = $risk->computedScore($scoringConfig);
+                $threshold = $scoringConfig->thresholdFor($score);
+            @endphp
+            <span class="badge"
+                  style="
+                    font-size:1.1rem;
+                    background:{{ $threshold['color'] }};
+                    color: {{ contrast_color($threshold['color']) }}"
+            >
                 {{ $risk->risk_score }}
             </span>
             &nbsp;
-            <strong>{{ $scoreThreshold['label'] }}</strong>
+            <strong>{{ $threshold['label'] }}</strong>
         </div>
     </div>
 
@@ -212,7 +220,7 @@
 
             @if (Auth::User()->role === 1 || Auth::User()->role === 2)
                 <a href="/risk/edit/{{ $risk->id }}" class="button primary">
-                    <span class="mif-wrench"></span>
+                    <span class="mif-pencil"></span>
                     &nbsp;{{ trans("common.edit") }}
                 </a>
                 &nbsp;

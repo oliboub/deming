@@ -49,3 +49,26 @@ window.chartColors = {
 	purple: 'rgb(153, 102, 255)',
 	grey: 'rgb(201, 203, 207)'
 };
+
+// Maximize the font contrast of the text with the given background color
+function getContrastColor(hexColor) {
+    // Convertit #rrggbb en composantes 0-255
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+
+    // Linéarisation sRGB (WCAG 2.1)
+    const toLinear = c => {
+        const s = c / 255;
+        return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    };
+
+    const L = 0.2126 * toLinear(r)
+        + 0.7152 * toLinear(g)
+        + 0.0722 * toLinear(b);
+
+    return L > 0.35 ? '#2d2d2d' : '#ffffff';
+    // return L > 0.179 ? '#000000' : '#ffffff';
+}
+
+window.getContrastColor = getContrastColor;

@@ -84,7 +84,14 @@
                               data-hint-text="{{ $t['max'] !== null
                                   ? 'Score ≤ ' . $t['max']
                                   : 'Score > ' . ($prevMax ?? 0) }}"
-                              style="font-size:.8rem;background:{{ $t['color'] }};color:#fff">
+                              style="
+                                background:{{ $t['color'] }};
+                                color:{{ contrast_color($t['color']) }};
+padding:2px 8px;
+                            font-size:1rem;
+
+                                "
+                              >
                             {{ $t['label'] }}
                         </span>
                 @endforeach

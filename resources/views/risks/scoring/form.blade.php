@@ -248,7 +248,12 @@
                                 </td>
                                 <td class="text-center">
                                     <span class="badge js-preview"
-                                          style="background:{{ $t['color'] ?? '#cccccc' }};color:#fff">
+                                          style="
+                                            background:{{ $t['color'] ?? '#cccccc' }};
+                                            color:{{ contrast_color($t['color']) }};
+                                            padding:2px 8px;
+                                            font-size:1rem"
+                                    >
                                         {{ $t['label'] }}
                                     </span>
                                 </td>
@@ -349,8 +354,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const preview = row.querySelector('.js-preview');
         const label   = row.querySelector('.js-threshold-label');
         if (!preview) return;
-        preview.style.background = inputEl.value;
-        preview.style.color      = '#fff';
+
+        const bg = inputEl.value;
+        preview.style.background = bg;
+        preview.style.color      = getContrastColor(bg);
+
         if (label) preview.textContent = label.value || '—';
     };
 

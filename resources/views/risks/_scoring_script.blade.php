@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
             badge.textContent      = score;
             badge.className        = 'badge';
             badge.style.background = t.color;
-            badge.style.color      = '#fff';
+            badge.style.color      = getContrastColor(t.color);
             label.textContent      = t.label;
         } else {
             badge.textContent      = '—';

@@ -169,8 +169,17 @@
                     <strong>{{ trans("cruds.risk.fields.score") }}</strong>
                 </div>
                 <div class="cell-lg-6 cell-md-8">
-                    <span id="score-badge" class="badge {{ $risk->risk_level_color }}" style="font-size:1.1rem">
-                        {{ $risk->risk_score }}
+                @php
+                    $score     = $risk->computedScore($scoringConfig);
+                    $threshold = $scoringConfig->thresholdFor($score);
+                @endphp
+                    <span id="score-badge" class="badge"
+                      style="background:{{ $threshold['color'] }};
+                            color:{{ contrast_color($threshold['color']) }};
+                            padding:2px 8px;
+                            font-size:1rem;
+                            cursor:pointer">
+                        {{ $score }}
                     </span>
                     &nbsp;
                     <span id="score-label" class="text-muted">{{ $risk->risk_level_label }}</span>

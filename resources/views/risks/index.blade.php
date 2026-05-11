@@ -78,6 +78,9 @@
     >
         <thead>
             <tr>
+                <th class="sortable-column sort-desc">{{ trans("cruds.risk.fields.score") }}</th>
+                <th class="sortable-column">{{ trans("cruds.risk.fields.status") }}</th>
+
                 <th class="sortable-column">{{ trans("cruds.risk.fields.name") }}</th>
                 <th class="sortable-column">{{ trans("cruds.risk.fields.owner") }}</th>
 
@@ -90,14 +93,38 @@
                 @endif
 
                 <th class="sortable-column">{{ trans("cruds.risk.fields.impact") }}</th>
-                <th class="sortable-column sort-desc">{{ trans("cruds.risk.fields.score") }}</th>
-                <th class="sortable-column">{{ trans("cruds.risk.fields.status") }}</th>
                 <th class="sortable-column">{{ trans("cruds.risk.fields.next_review") }}</th>
             </tr>
         </thead>
         <tbody>
         @foreach ($risks as $risk)
         <tr>
+            {{-- Score délégué au modèle Risk --}}
+            <td>
+                @php
+                    $score     = $risk->computedScore($scoringConfig);
+                    $threshold = $scoringConfig->thresholdFor($score);
+                @endphp
+                <span style="display:none">{{ str_pad($score, 4, '0', STR_PAD_LEFT) }}</span>
+                <a href="/risk/show/{{ $risk->id }}">
+                <span class="badge"
+                      style="background:{{ $threshold['color'] }};
+                            color:{{ contrast_color($threshold['color']) }};
+                            padding:2px 8px;
+                            font-size:1rem;
+                            cursor:pointer">
+                    {{ $score }}
+                </span>
+                </a>
+            </td>
+
+            {{-- Status --}}
+            <td>
+                <span class="badge {{ \App\Models\Risk::STATUS_COLORS[$risk->status] ?? 'secondary' }}">
+                    {{ \App\Models\Risk::STATUS_LABELS[$risk->status] ?? $risk->status }}
+                </span>
+            </td>
+
             <td>
                 <span style="display:none">{{ $risk->name }}</span>
                 <a href="/risk/show/{{ $risk->id }}">{{ $risk->name }}</a>
@@ -114,24 +141,6 @@
 
             <td>{{ $risk->impact }}</td>
 
-            {{-- Score délégué au modèle Risk --}}
-            <td>
-                @php
-                    $score     = $risk->computedScore($scoringConfig);
-                    $threshold = $scoringConfig->thresholdFor($score);
-                @endphp
-                <span style="display:none">{{ str_pad($score, 4, '0', STR_PAD_LEFT) }}</span>
-                <span class="badge"
-                      style="background:{{ $threshold['color'] }};color:#fff;padding:2px 8px;font-size:1rem">
-                    {{ $score }}
-                </span>
-            </td>
-
-            <td>
-                <span class="badge {{ \App\Models\Risk::STATUS_COLORS[$risk->status] ?? 'secondary' }}">
-                    {{ \App\Models\Risk::STATUS_LABELS[$risk->status] ?? $risk->status }}
-                </span>
-            </td>
             <td style="white-space:nowrap">
                 @if ($risk->next_review_at)
                     @if ($risk->is_overdue)
@@ -152,12 +161,12 @@
 
 {{-- Alignemet de la table --}}
 <style>
-#risks-table td:nth-child(5),
-#risks-table td:nth-child(6),
+#risks-table td:nth-child(3),
 #risks-table td:nth-child(7),
-#risks-table th:nth-child(5),
-#risks-table th:nth-child(6),
-#risks-table th:nth-child(7) {
+#risks-table td:nth-child(8),
+#risks-table th:nth-child(3),
+#risks-table th:nth-child(7),
+#risks-table th:nth-child(8) {
     text-align: center !important;
 }
 </style>
