@@ -67,7 +67,7 @@ function getContrastColor(hexColor) {
         + 0.7152 * toLinear(g)
         + 0.0722 * toLinear(b);
 
-    return L > 0.35 ? '#2d2d2d' : '#ffffff';
+    return L > 0.8 ? '#2d2d2d' : '#ffffff';
     // return L > 0.179 ? '#000000' : '#ffffff';
 }
 
