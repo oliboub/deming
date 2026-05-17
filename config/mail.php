@@ -43,7 +43,7 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'auth' => env('MAIL_SMTP_AUTH'),
-            'secure' => env('MAIL_SMTP_SECURE', false),
+            'secure' => env('MAIL_SMTP_SECURE', null),
             'auto_tls' => env('MAIL_SMTP_AUTO_TLS', false),
         ],
 

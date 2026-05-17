@@ -52,6 +52,12 @@ class Measure extends Model
             ->whereNotNull('realisation_date')->orderBy('realisation_date');
     }
 
+    // Return all controls associated to this measure (including pending ones, for API sync)
+    public function allControls(): BelongsToMany
+    {
+        return $this->belongsToMany(Control::class);
+    }
+
     // Check if there is an empty control associated with this measure
     public function isActive(): bool
     {
