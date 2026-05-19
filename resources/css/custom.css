@@ -80,6 +80,10 @@ input[type=text], input[type=password], input[type=email], input[type=date], inp
         color: #abb2bf;
         background: #282c34;
     }
+
+    pre {
+        color: #ffffff;
+    }
 }
 
 
