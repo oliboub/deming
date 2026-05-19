@@ -11,7 +11,7 @@
                     <option value="">-- {{ trans('cruds.exception.fields.choose_status') }} --</option>
                     @foreach(\App\Models\Exception::STATUS_LABELS as $value => $label)
                         <option value="{{ $value }}" {{ (string)($filters['status'] ?? '') === (string)$value ? 'selected' : '' }}>
-                            {{ $label }}
+                            {{ trans($label) }}
                         </option>
                     @endforeach
                 </select>

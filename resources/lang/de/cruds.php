@@ -507,6 +507,13 @@ return [
         'confirm_submit' => 'Diese Ausnahme zur Validierung einreichen?',
         'confirm_approve' => 'Diese Ausnahme genehmigen?',
         'confirm_reject' => 'Diese Ausnahme ablehnen?',
+        'status' => [
+            'draft' => 'Entwurf',
+            'submitted' => 'Eingereicht',
+            'approved' => 'Genehmigt',
+            'rejected' => 'Abgelehnt',
+            'expired' => 'Abgelaufen',
+        ],
         'actions' => [
             'submit' => 'Absenden',
             'approve' => 'Genehmigen',
