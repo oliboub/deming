@@ -37,6 +37,7 @@ class Control extends Model
         'objective',
         'observations',
         'input',
+        'score',
         'attributes',
         'model',
         'action_plan',
