@@ -35,11 +35,11 @@ class Exception extends Model
 
     /** Labels traduits (clé = constante, valeur = clé de traduction) */
     public const STATUS_LABELS = [
-        self::STATUS_DRAFT     => 'Brouillon',
-        self::STATUS_SUBMITTED => 'Soumise',
-        self::STATUS_APPROVED  => 'Approuvée',
-        self::STATUS_REJECTED  => 'Refusée',
-        self::STATUS_EXPIRED   => 'Expirée',
+        self::STATUS_DRAFT     => 'cruds.exception.status.draft',
+        self::STATUS_SUBMITTED => 'cruds.exception.status.submitted',
+        self::STATUS_APPROVED  => 'cruds.exception.status.approved',
+        self::STATUS_REJECTED  => 'cruds.exception.status.rejected',
+        self::STATUS_EXPIRED   => 'cruds.exception.status.expired',
     ];
 
     // ── Fillable ──────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ class Exception extends Model
     /** Libellé du statut courant */
     public function getStatusLabelAttribute(): string
     {
-        return self::STATUS_LABELS[$this->status] ?? '?';
+        return trans(self::STATUS_LABELS[$this->status]);
     }
 
     /** Vraie si la date de fin est dépassée et que l'exception est approuvée */

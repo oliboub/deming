@@ -520,6 +520,14 @@ return [
             'reject'  => 'Refuser',
         ],
 
+        'status' => [
+            'draft' => 'Brouillon',
+            'submitted' => 'Soumise',
+            'approved' => 'Approuvée',
+            'rejected' => 'Refusée',
+            'expired' => 'Expirée',
+        ],
+
         'fields' => [
             'name'                        => 'Nom',
             'measure'                     => 'Contrôle lié',

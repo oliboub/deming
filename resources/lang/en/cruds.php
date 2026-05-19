@@ -517,6 +517,15 @@ return [
             'approve' => 'Approve',
             'reject' => 'Reject',
         ],
+
+        'status' => [
+            'draft' => 'Draft',
+            'submitted' => 'Submitted',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            'expired' => 'Expired',
+        ],
+
         'fields' => [
             'name' => 'Name',
             'measure' => 'Linked control',

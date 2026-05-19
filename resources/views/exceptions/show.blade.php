@@ -198,7 +198,7 @@
                 {{-- Éditer (Brouillon ou Refusée) --}}
                 @if($exception->canEdit() && ((Auth::User()->role === 1) || (Auth::User()->role === 2)))
                     <a href="/exception/edit/{{ $exception->id }}" class="button primary">
-                        <span class="mif-wrench"></span>&nbsp;{{ trans('common.edit') }}
+                        <span class="mif-pencil"></span>&nbsp;{{ trans('common.edit') }}
                     </a>
                     &nbsp;
                 @endif
