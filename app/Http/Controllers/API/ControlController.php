@@ -56,6 +56,7 @@ class ControlController extends Controller
     {
         abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        $control->allMeasures()->detach();
         $control->delete();
 
         return response()->json();
