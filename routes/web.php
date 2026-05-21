@@ -40,47 +40,47 @@ Route::namespace('App\\Http\\Controllers')->middleware('auth')->group(function (
     Route::get('/about', 'HomeController@test');
     Route::view('/about', 'about');
 
-    /* Measures (security measures → ControlController) */
-    Route::get('/alice/index', 'ControlController@index');
-    Route::get('/alice/create', 'ControlController@create');
-    Route::post('/alice/store', 'ControlController@store');
-    Route::post('/alice/save/{id}', 'ControlController@update');
-    Route::get('/alice/{id}/edit', 'ControlController@edit');
-    Route::get('/alice/plan/{id}', 'ControlController@plan');
-    Route::get('/alice/show/{id}', 'ControlController@show');
-    Route::get('/alice/clone/{id}', 'ControlController@clone');
-    Route::post('/alice/delete/{id}', 'ControlController@destroy');
-    Route::post('/alice/activate/{id}', 'ControlController@activate');
+    /* Measures (security measures → MeasureController) */
+    Route::get('/alice/index', 'MeasureController@index');
+    Route::get('/alice/create', 'MeasureController@create');
+    Route::post('/alice/store', 'MeasureController@store');
+    Route::post('/alice/save/{id}', 'MeasureController@update');
+    Route::get('/alice/{id}/edit', 'MeasureController@edit');
+    Route::get('/alice/plan/{id}', 'MeasureController@plan');
+    Route::get('/alice/show/{id}', 'MeasureController@show');
+    Route::get('/alice/clone/{id}', 'MeasureController@clone');
+    Route::post('/alice/delete/{id}', 'MeasureController@destroy');
+    Route::post('/alice/activate/{id}', 'MeasureController@activate');
     Route::get('/alice/import', 'MeasureImportController@show');
     Route::post('/alice/import', 'MeasureImportController@import');
     Route::get('/alice/download', 'MeasureImportController@download');
 
-    /* Controls (audit instances → MeasureController) */
-    Route::get('/bob/index', 'MeasureController@index');
-    Route::get('/bob/create', 'MeasureController@create');
-    Route::post('/bob/store', 'MeasureController@store');
-    Route::get('/bob/show/{id}', 'MeasureController@show');
-    Route::get('/bob/make/{id}', 'MeasureController@make');
-    Route::get('/bob/edit/{id}', 'MeasureController@edit');
-    Route::post('/bob/template/{id}', 'MeasureController@template');
-    Route::get('/bob/clone/{id}', 'MeasureController@clone');
-    Route::get('/bob/delete/{id}', 'MeasureController@destroy');
-    Route::post('/bob/make', 'MeasureController@doMake');
-    Route::post('/bob/accept', 'MeasureController@accept');
-    Route::post('/bob/reject', 'MeasureController@reject');
-    Route::post('/bob/plan', 'MeasureController@doPlan');
-    Route::post('/bob/unplan', 'MeasureController@unplan');
-    Route::post('/bob/draft', 'MeasureController@draft');
-    Route::post('/bob/save', 'MeasureController@save');
-    Route::get('/bob/history', 'MeasureController@history');
-    Route::get('/bob/upload/{id}', 'MeasureController@upload');
-    Route::get('/bob/plan/{id}', 'MeasureController@plan');
+    /* Controls (audit instances → ControlController) */
+    Route::get('/bob/index', 'ControlController@index');
+    Route::get('/bob/create', 'ControlController@create');
+    Route::post('/bob/store', 'ControlController@store');
+    Route::get('/bob/show/{id}', 'ControlController@show');
+    Route::get('/bob/make/{id}', 'ControlController@make');
+    Route::get('/bob/edit/{id}', 'ControlController@edit');
+    Route::post('/bob/template/{id}', 'ControlController@template');
+    Route::get('/bob/clone/{id}', 'ControlController@clone');
+    Route::get('/bob/delete/{id}', 'ControlController@destroy');
+    Route::post('/bob/make', 'ControlController@doMake');
+    Route::post('/bob/accept', 'ControlController@accept');
+    Route::post('/bob/reject', 'ControlController@reject');
+    Route::post('/bob/plan', 'ControlController@doPlan');
+    Route::post('/bob/unplan', 'ControlController@unplan');
+    Route::post('/bob/draft', 'ControlController@draft');
+    Route::post('/bob/save', 'ControlController@save');
+    Route::get('/bob/history', 'ControlController@history');
+    Route::get('/bob/upload/{id}', 'ControlController@upload');
+    Route::get('/bob/plan/{id}', 'ControlController@plan');
 
     /* Radars */
-    Route::get('/radar/domains', 'MeasureController@domains');
-    Route::get('/radar/alice', 'MeasureController@measures');
-    Route::get('/radar/attributes', 'MeasureController@attributes');
-    Route::get('/radar/bob', 'MeasureController@tempo');
+    Route::get('/radar/domains', 'ControlController@domains');
+    Route::get('/radar/alice', 'ControlController@measures');
+    Route::get('/radar/attributes', 'ControlController@attributes');
+    Route::get('/radar/bob', 'ControlController@tempo');
     Route::get('/radar/actions', 'ActionController@chart');
 
     /* Documents */
@@ -131,8 +131,8 @@ Route::namespace('App\\Http\\Controllers')->middleware('auth')->group(function (
     /* Exports */
     Route::get('/export/domains', 'DomainController@export');
     Route::get('/export/attributes', 'AttributeController@export');
-    Route::get('/export/alices', 'ControlController@export');
-    Route::get('/export/bobs', 'MeasureController@export');
+    Route::get('/export/alices', 'MeasureController@export');
+    Route::get('/export/bobs', 'ControlController@export');
     Route::get('/export/actions', 'ActionController@export');
     Route::get('/export/users', 'UserController@export');
     Route::get('/export/risks', 'RiskController@export');
