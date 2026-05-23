@@ -24,8 +24,8 @@ class ControlController extends Controller
         abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $control = Control::query()->create($request->all());
-        if ($request->has('controls')) {
-            $control->allMeasures()->sync($request->input('controls', []));
+        if ($request->has('measures')) {
+            $control->allMeasures()->sync($request->input('measures', []));
         }
 
         return response()->json($control, 201);
@@ -35,7 +35,7 @@ class ControlController extends Controller
     {
         abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $control['controls'] = $control->allMeasures()->pluck('id');
+        $control['measures'] = $control->allMeasures()->pluck('id');
 
         return response()->json($control);
     }
@@ -45,8 +45,8 @@ class ControlController extends Controller
         abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $control->update($request->all());
-        if ($request->has('controls')) {
-            $control->allMeasures()->sync($request->input('controls', []));
+        if ($request->has('measures')) {
+            $control->allMeasures()->sync($request->input('measures', []));
         }
 
         return response()->json();

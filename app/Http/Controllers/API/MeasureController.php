@@ -27,8 +27,8 @@ class MeasureController extends Controller
 
         $measure = Measure::create($request->all());
 
-        if ($request->has('measures')) {
-            $measure->controls()->sync($request->input('measures', []));
+        if ($request->has('controls')) {
+            $measure->controls()->sync($request->input('controls', []));
         }
         if ($request->has('actions')) {
             Action::where('measure_id', $measure->id)->update(['measure_id' => null]);
@@ -52,7 +52,7 @@ class MeasureController extends Controller
     {
         abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $measure['measures'] = $measure->controls()->pluck('id');
+        $measure['controls'] = $measure->controls()->pluck('id');
 
         return response()->json($measure);
     }
@@ -63,8 +63,8 @@ class MeasureController extends Controller
 
         $measure->update($request->all());
 
-        if ($request->has('measures')) {
-            $measure->controls()->sync($request->input('measures', []));
+        if ($request->has('controls')) {
+            $measure->controls()->sync($request->input('controls', []));
         }
         if ($request->has('actions')) {
             Action::where('measure_id', $measure->id)->update(['measure_id' => null]);
