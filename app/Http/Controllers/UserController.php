@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\UsersExport;
-use App\Models\Control;
+use App\Models\Measure;
 use App\Models\User;
 use Config;
 use Illuminate\Http\Request;
@@ -116,9 +116,9 @@ class UserController extends Controller
         // Allow only admin or the owner of the profile to edit
         $this->authorizeAdminOrOwner($user);
 
-        $controls = Control::select('id', 'name')->whereNull('realisation_date')->orderBy('name')->get();
+        $measures = Measure::select('id', 'name')->whereNull('realisation_date')->orderBy('name')->get();
 
-        return view('users.edit', compact('user', 'controls'));
+        return view('users.edit', compact('user', 'measures'));
     }
 
     /**

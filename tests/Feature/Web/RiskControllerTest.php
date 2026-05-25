@@ -2,11 +2,14 @@
 
 use App\Models\Risk;
 use App\Models\User;
+use Database\Seeders\RiskScoringConfigSeeder;
 
 beforeEach(function () {
     $this->admin   = User::factory()->admin()->create();
     $this->user    = User::factory()->create(['role' => User::ROLE_USER]);
     $this->auditor = User::factory()->auditor()->create();
+    $this->seed(RiskScoringConfigSeeder::class);
+
 });
 
 test('guest is redirected to login', function () {

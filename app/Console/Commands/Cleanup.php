@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Control;
+use App\Models\Measure;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -52,11 +52,11 @@ class Cleanup extends Command
 
             Log::info("Cleanup limit date {$dateLimit}");
 
-            $result = Control::cleanup($dateLimit, false);
+            $result = Measure::cleanup($dateLimit, false);
 
             Log::info("Cleanup {$result['logCount']} log(s).");
             Log::info("Cleanup {$result['documentCount']} document(s).");
-            Log::info("Cleanup {$result['controlCount']} control(s).");
+            Log::info("Cleanup {$result['measureCount']} measure(s).");
         }
 
         Log::info('Cleanup Done.');

@@ -64,11 +64,11 @@ class RiskScoringService
     // Construction
     // -------------------------------------------------------------------------
 
-    private RiskScoringConfig $config;
+    private ?RiskScoringConfig $config = null;
 
     public function __construct()
     {
-        $this->config = RiskScoringConfig::active();
+        // config loaded lazily on first use
     }
 
     // -------------------------------------------------------------------------
@@ -90,7 +90,7 @@ class RiskScoringService
     public function score(Risk $risk): array
     {
         [$score, $likelihood] = $this->calculate($risk);
-        $threshold = $this->config->thresholdFor($score);
+        $threshold = $this->config()->thresholdFor($score);
 
         return [
             'score'      => $score,
@@ -98,7 +98,7 @@ class RiskScoringService
             'level'      => $threshold['level'],
             'label'      => $threshold['label'],
             'color'      => $threshold['color'],
-            'max_score'  => $this->config->maxScore(),
+            'max_score'  => $this->config()->maxScore(),
         ];
     }
 
@@ -107,7 +107,7 @@ class RiskScoringService
      */
     public function config(): RiskScoringConfig
     {
-        return $this->config;
+        return $this->config ??= RiskScoringConfig::active();
     }
 
     /**
@@ -152,16 +152,16 @@ class RiskScoringService
     /** Labels et valeurs pour l'axe X de la matrice (toujours l'impact) */
     public function matrixXAxis(): array
     {
-        return $this->config->impact_levels ?? [];
+        return $this->config()->impact_levels ?? [];
     }
 
     /** Labels et valeurs pour l'axe Y de la matrice (prob. ou vraisemblance) */
     public function matrixYAxis(): array
     {
-        if ($this->config->usesLikelihood()) {
+        if ($this->config()->usesLikelihood()) {
             // Générer les valeurs de vraisemblance = toutes combinaisons exposition + vulnérabilité
-            $exposures     = array_column($this->config->exposure_levels ?? [], 'value');
-            $vulnerabilities = array_column($this->config->vulnerability_levels ?? [], 'value');
+            $exposures     = array_column($this->config()->exposure_levels ?? [], 'value');
+            $vulnerabilities = array_column($this->config()->vulnerability_levels ?? [], 'value');
             $likelihoods   = [];
 
             foreach ($exposures as $e) {
@@ -177,7 +177,7 @@ class RiskScoringService
             );
         }
 
-        return $this->config->probability_levels ?? [];
+        return $this->config()->probability_levels ?? [];
     }
 
     // -------------------------------------------------------------------------
@@ -189,7 +189,7 @@ class RiskScoringService
      */
     private function calculate(Risk $risk): array
     {
-        return match ($this->config->formula) {
+        return match ($this->config()->formula) {
             'probability_x_impact' => $this->formulaProbabilityXImpact($risk),
             'likelihood_x_impact'  => $this->formulaLikelihoodXImpact($risk),
             'additive'             => $this->formulaAdditive($risk),
@@ -237,7 +237,7 @@ class RiskScoringService
 
     private function yAxisValue(Risk $risk): int
     {
-        if ($this->config->usesLikelihood()) {
+        if ($this->config()->usesLikelihood()) {
             return ($risk->exposure ?? 0) + ($risk->vulnerability ?? 0);
         }
 

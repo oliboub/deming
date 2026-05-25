@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Measure;
+use App\Models\Control;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -91,6 +91,6 @@ class MeasuresExport extends StringValueBinder implements FromQuery, WithMapping
 
     public function query(): Builder
     {
-        return Measure::with('domain')->orderBy('clause');
+        return Control::with('domain')->orderBy('clause');
     }
 }

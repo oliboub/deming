@@ -1,5 +1,9 @@
 <?php
 
+use Database\Seeders\AttributeSeeder;
+use Database\Seeders\DomainSeeder;
+use Database\Seeders\MeasureSeeder;
+use Database\Seeders\RiskScoringConfigSeeder;
 use Illuminate\Database\Seeder;
 use Database\Seeders\UserSeeder;
 
@@ -27,6 +31,14 @@ class DatabaseSeeder extends Seeder
                 'email' => 'admin@admin.localhost',
                 'password' => bcrypt('admin'),
             ]);
+
+            $this->call([
+                AttributeSeeder::class,
+                // DomainSeeder::class,
+                // MeasureSeeder::class,
+                RiskScoringConfigSeeder::class,
+            ]);
+
 
         }
     }

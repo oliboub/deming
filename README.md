@@ -1,9 +1,9 @@
 # Deming
 
-[![Latest Release](https://img.shields.io/github/release/dbarzin/deming.svg?style=flat-square)](https://github.com/dbarzin/deming/releases/latest)
-![License](https://img.shields.io/github/license/dbarzin/deming.svg?style=flat-square)
-![Contributors](https://img.shields.io/github/contributors/dbarzin/deming.svg?style=flat-square)
-![Stars](https://img.shields.io/github/stars/dbarzin/deming?style=flat-square)
+[![Latest Release](https://img.shields.io/github/release/sourcentis/deming.svg?style=flat-square)](https://github.com/sourcentis/deming/releases/latest)
+![License](https://img.shields.io/github/license/sourcentis/deming.svg?style=flat-square)
+![Contributors](https://img.shields.io/github/contributors/sourcentis/deming.svg?style=flat-square)
+![Stars](https://img.shields.io/github/stars/sourcentis/deming?style=flat-square)
 
 - Read this in other languages: [French](README.fr.md)
 
@@ -89,11 +89,11 @@ According to ISO 27001, chapter 9.1, it is imperative to assess security perform
 | PCI.DSS.4.0.EN.xlsx                  | [PCI DSS, v4.0, in English](https://blog.pcisecuritystandards.org/pci-dss-v4-0-resource-hub) |
 | sp800-53r5-control-catalog-full.xlsx | [NIST SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final)    |
 
-Adding your own referential to this list is done via a spreadsheet in Deming's [administration interface](https://dbarzin.github.io/deming/config/#import).
+Adding your own referential to this list is done via a spreadsheet in Deming's [administration interface](https://sourcentis.github.io/deming/config/#import).
 
 ## :books: Documentation
 
-To find out more about using the application, please refer to the [user documentation](https://dbarzin.github.io/deming).
+To find out more about using the application, please refer to the [user documentation](https://sourcentis.github.io/deming).
 
 ## :hammer_and_wrench:️ Technologies used
 
@@ -104,16 +104,16 @@ To find out more about using the application, please refer to the [user document
 
 ## ⚙️ Installation
 
-Follow the [installation procedure for Debian](https://github.com/dbarzin/deming/blob/main/INSTALL.debian.md) to set up the application.
+Follow the [installation procedure for Debian](https://github.com/sourcentis/deming/blob/main/INSTALL.debian.md) to set up the application.
 
-Follow the [installation procedure for Ubuntu](https://github.com/dbarzin/deming/blob/main/INSTALL.md) to set up the application.
+Follow the [installation procedure for Ubuntu](https://github.com/sourcentis/deming/blob/main/INSTALL.md) to set up the application.
 
 ### 🐳 Docker Installation
 
 Get up and running quickly using Docker. Run a local instance in development mode:
 
 ```bash
-git clone https://github.com/dbarzin/deming.git
+git clone https://github.com/sourcentis/deming.git
 cd deming
 cp .env.example .env
 sed -i 's/DB_HOST=127.0.0.1/DB_HOST=mysql/' .env
@@ -122,7 +122,7 @@ docker compose up
 
 ## :car: Roadmap
 
-Consult the [roadmap](https://github.com/dbarzin/deming/blob/main/ROADMAP.md) to discover future developments of **Deming**.
+Consult the [roadmap](https://github.com/sourcentis/deming/blob/main/ROADMAP.md) to discover future developments of **Deming**.
 
 ## :scroll: License
 

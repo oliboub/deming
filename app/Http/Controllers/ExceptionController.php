@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Control;
 use App\Models\Exception;
-use App\Models\Measure;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,7 +45,7 @@ class ExceptionController extends Controller
     public function index(Request $request): View
     {
         abort_if(
-            !Auth::User()->isAdmin() && !Auth::User()->isUser(),
+            !Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -60,7 +60,7 @@ class ExceptionController extends Controller
 
         // Filtre sur la mesure liée
         if ($request->filled('measure_id')) {
-            $query->where('measure_id', (int) $request->measure_id);
+            $query->where('control_id', (int) $request->measure_id);
         }
 
         // Filtre sur les exceptions expirées
@@ -76,10 +76,10 @@ class ExceptionController extends Controller
         ]);
 
         $exceptions  = $query->paginate(50)->withQueryString();
-        $measures    = Measure::query()->orderBy('name')->get();
+        $controls    = Control::query()->orderBy('name')->get();
         $filters     = $request->only(['status', 'measure_id', 'expired']);
 
-        return view('exceptions.index', compact('exceptions', 'measures', 'filters'));
+        return view('exceptions.index', compact('exceptions', 'controls', 'filters'));
     }
 
     // =========================================================================
@@ -89,22 +89,21 @@ class ExceptionController extends Controller
     public function create(): View
     {
         abort_if(
-            !Auth::User()->isAdmin() && !Auth::User()->isUser(),
+            !Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        // On ne propose que les mesures ayant au moins un contrôle non conforme
-        $measures = Measure::query()->orderBy('name')->get();
+        $controls = Control::query()->orderBy('name')->get();
         $statuses = Exception::STATUS_LABELS;
 
-        return view('exceptions.create', compact('measures', 'statuses'));
+        return view('exceptions.create', compact('controls', 'statuses'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         abort_if(
-            !Auth::User()->isAdmin() && !Auth::User()->isUser(),
+            !Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -126,7 +125,7 @@ class ExceptionController extends Controller
     public function show(int $id): View
     {
         abort_if(
-            !Auth::User()->isAdmin() && !Auth::User()->isUser(),
+            !Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -144,7 +143,7 @@ class ExceptionController extends Controller
     public function edit(int $id): View
     {
         abort_if(
-            !Auth::User()->isAdmin() && !Auth::User()->isUser(),
+            !Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -158,16 +157,16 @@ class ExceptionController extends Controller
             'Une exception soumise ou approuvée ne peut pas être modifiée.'
         );
 
-        $measures = Measure::query()->orderBy('name')->get();
+        $controls = Control::query()->orderBy('name')->get();
         $statuses = Exception::STATUS_LABELS;
 
-        return view('exceptions.edit', compact('exception', 'measures', 'statuses'));
+        return view('exceptions.edit', compact('exception', 'controls', 'statuses'));
     }
 
     public function update(Request $request): RedirectResponse
     {
         abort_if(
-            !Auth::User()->isAdmin() && !Auth::User()->isUser(),
+            !Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -203,7 +202,7 @@ class ExceptionController extends Controller
     public function destroy(int $id): RedirectResponse
     {
         abort_if(
-            !Auth::User()->isAdmin(),
+            !Auth::user()->isAdmin(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -221,7 +220,7 @@ class ExceptionController extends Controller
     public function submit(Request $request): RedirectResponse
     {
         abort_if(
-            !Auth::User()->isAdmin() && !Auth::User()->isUser(),
+            !Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -251,7 +250,7 @@ class ExceptionController extends Controller
     public function approve(Request $request): RedirectResponse
     {
         abort_if(
-            !Auth::User()->isAdmin(),
+            !Auth::user()->isAdmin(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -287,7 +286,7 @@ class ExceptionController extends Controller
     public function reject(Request $request): RedirectResponse
     {
         abort_if(
-            !Auth::User()->isAdmin(),
+            !Auth::user()->isAdmin(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -322,14 +321,20 @@ class ExceptionController extends Controller
 
     private function validateException(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'name'                  => ['required', 'string', 'max:255'],
             'description'           => ['nullable', 'string'],
             'justification'         => ['nullable', 'string'],
             'compensating_controls' => ['nullable', 'string'],
-            'measure_id'            => ['nullable', 'exists:measures,id'],
+            'measure_id'            => ['nullable', 'exists:controls,id'],
             'start_date'            => ['nullable', 'date'],
             'end_date'              => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
+        // map form field measure_id → DB column control_id
+        if (array_key_exists('measure_id', $validated)) {
+            $validated['control_id'] = $validated['measure_id'];
+            unset($validated['measure_id']);
+        }
+        return $validated;
     }
 }

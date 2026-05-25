@@ -83,7 +83,7 @@ test('admin can update a user', function () {
             'login' => $target->login,
             'name' => 'Updated Name',
             'email' => $target->email,
-            'title' => $target->title,
+            'title' => 'Test Title',
             'role' => $target->role,
         ])
         ->assertRedirect();

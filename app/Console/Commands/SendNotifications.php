@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Control;
+use App\Models\Measure;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -40,7 +40,7 @@ class SendNotifications extends Command
         if ($this->needCheck()) {
             Log::info('SendNotifications - notifications today');
 
-            $controls = Control
+            $controls = Measure
                 ::where('status', 0)
                     ->where('plan_date', '<=', Carbon::today()
                         ->addDays(intval(config('deming.notification.expire-delay')))->toDateString())
@@ -60,9 +60,9 @@ class SendNotifications extends Command
 
             foreach ($users as $user) {
                 // get controls
-                $controls = Control::where('status', 0)
-                    ->leftJoin('control_user', 'controls.id', '=', 'control_user.control_id')
-                    ->leftJoin('control_user_group', 'controls.id', '=', 'control_user_group.control_id')
+                $controls = Measure::where('status', 0)
+                    ->leftJoin('control_user', 'measures.id', '=', 'control_user.measure_id')
+                    ->leftJoin('control_user_group', 'measures.id', '=', 'control_user_group.measure_id')
                     ->leftJoin('user_user_group', 'control_user_group.user_group_id', '=', 'user_user_group.user_group_id')
                     ->where(function ($query) use ($user) {
                         $query->where('control_user.user_id', '=', $user->id)
@@ -71,7 +71,7 @@ class SendNotifications extends Command
                     ->where('plan_date', '<=', Carbon::today()
                         ->addDays(intval(config('deming.notification.expire-delay')))->toDateString())
                     ->orderBy('plan_date')
-                    ->with('measures')
+                    ->with('controls')
                     ->get();
 
                 if ($controls->count() > 0) {
@@ -90,8 +90,8 @@ class SendNotifications extends Command
                         $txt .= '</a>';
                         // Space
                         $txt .= ' &nbsp; - &nbsp; ';
-                        // Clauses
-                        foreach ($control->measures as $measure) {
+                        // Clauses (security measures = controls)
+                        foreach ($control->controls as $measure) {
                             $txt .= '<a href="' . url('/alice/show/' . $measure->id) . '">'. htmlentities($measure->clause) . '</a>';
                             // Space
                             $txt .= ' &nbsp; ';

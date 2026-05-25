@@ -15,7 +15,7 @@ test('guest is redirected to login', function () {
 });
 
 test('admin can list controls', function () {
-    Control::factory()->count(3)->create();
+    Measure::factory()->count(3)->create();
     $this->actingAs($this->admin)->get('/bob/index')->assertStatus(200);
 });
 
@@ -38,7 +38,7 @@ test('auditor cannot access create form', function () {
 });
 
 test('admin can create a control', function () {
-    $measure = Measure::factory()->create();
+    $control = Control::factory()->create();
 
     $this->actingAs($this->admin)
         ->post('/bob/store', [
@@ -46,11 +46,11 @@ test('admin can create a control', function () {
             'objective' => 'Review access rights each quarter',
             'periodicity' => 3,
             'plan_date' => '2026-06-01',
-            'measures' => [$measure->id],
+            'controls' => [$control->id],
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('controls', ['name' => 'Quarterly Access Review']);
+    $this->assertDatabaseHas('measures', ['name' => 'Quarterly Access Review']);
 });
 
 test('auditor cannot create a control', function () {
@@ -63,34 +63,34 @@ test('auditor cannot create a control', function () {
 });
 
 test('admin can view a control', function () {
-    $control = Control::factory()->create();
-    $this->actingAs($this->admin)->get("/bob/show/{$control->id}")->assertStatus(200);
+    $measure = Measure::factory()->create();
+    $this->actingAs($this->admin)->get("/bob/show/{$measure->id}")->assertStatus(200);
 });
 
 test('auditor can view a control', function () {
-    $control = Control::factory()->create();
-    $this->actingAs($this->auditor)->get("/bob/show/{$control->id}")->assertStatus(200);
+    $measure = Measure::factory()->create();
+    $this->actingAs($this->auditor)->get("/bob/show/{$measure->id}")->assertStatus(200);
 });
 
 test('admin can edit a control', function () {
-    $control = Control::factory()->create();
-    $this->actingAs($this->admin)->get("/bob/edit/{$control->id}")->assertStatus(200);
+    $measure = Measure::factory()->create();
+    $this->actingAs($this->admin)->get("/bob/edit/{$measure->id}")->assertStatus(200);
 });
 
 test('non-admin cannot edit a control', function () {
-    $control = Control::factory()->create();
-    $this->actingAs($this->user)->get("/bob/edit/{$control->id}")->assertStatus(403);
+    $measure = Measure::factory()->create();
+    $this->actingAs($this->user)->get("/bob/edit/{$measure->id}")->assertStatus(403);
 });
 
 test('admin can delete a control', function () {
-    $control = Control::factory()->create();
-    $this->actingAs($this->admin)->get("/bob/delete/{$control->id}")->assertRedirect();
-    $this->assertDatabaseMissing('controls', ['id' => $control->id]);
+    $measure = Measure::factory()->create();
+    $this->actingAs($this->admin)->get("/bob/delete/{$measure->id}")->assertRedirect();
+    $this->assertDatabaseMissing('measures', ['id' => $measure->id]);
 });
 
 test('non-admin cannot delete a control', function () {
-    $control = Control::factory()->create();
-    $this->actingAs($this->user)->get("/bob/delete/{$control->id}")->assertStatus(403);
+    $measure = Measure::factory()->create();
+    $this->actingAs($this->user)->get("/bob/delete/{$measure->id}")->assertStatus(403);
 });
 
 test('admin can view history', function () {
@@ -108,7 +108,7 @@ test('admin can view radar domains', function () {
 });
 
 test('admin can export controls', function () {
-    Control::factory()->count(2)->create();
+    Measure::factory()->count(2)->create();
     $this->actingAs($this->admin)->get('/export/bobs')->assertStatus(200);
 });
 

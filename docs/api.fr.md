@@ -8,7 +8,7 @@ et permet d'interagir avec les services web RESTful.
 
 ## Installer l'API
 
-pour installer l'API, il est nécessaire d'installer Passport en lançant cette commande :
+Pour installer l'API, il est nécessaire d'installer Passport en lançant cette commande :
 
 ```bash
 php artisan passport:install
@@ -18,32 +18,30 @@ L'environnement Docker prend en charge cette fonctionnalité nativement, via l'[
 
 ## Les APIs
 
-- /api/attributes
+| Endpoint | Rôle |
+|---|---|
+| `/api/attributes` | Taxonomies d'attributs |
+| `/api/domains` | Domaines / référentiels |
+| `/api/controls` | **Mesures de sécurité** (exigences à mettre en œuvre, liées à un domaine) |
+| `/api/measures` | **Instances d'audit** (vérifications périodiques des mesures de sécurité) |
+| `/api/users` | Utilisateurs |
+| `/api/documents` | Documents attachés aux instances d'audit |
+| `/api/logs` | Journaux d'audit |
 
-- /api/domains
-
-- /api/measures
-
-- /api/controls
-
-- /api/users
-
-- /api/documents
-
-- /api/logs
+> **Rappel des rôles :** `controls` = mesures de sécurité (`domain_id`, `clause`, `objective`…).  
+> `measures` = instances d'audit (`plan_date`, `realisation_date`, `status`, `score`…).
 
 ## Actions gérées par le contrôleur de ressources
 
-Les requêtes et URI de chaque api est représentée dans le tableau ci-dessous.
+Les requêtes et URI de chaque API sont représentées dans le tableau ci-dessous.
 
-| Requête   | URI                | Action 	
-|-----------|--------------------|--------------------------------|      
-| GET       | /api/objets        | renvoie la liste des objets    |
-| GET       | /api/objets/{id}   | renvoie l'objet {id}           |
-| POST 	    | /api/objets 	     | sauve un nouvel objet          |
-| PUT/PATCH | /api/objets/{id}   | met à jour l'objet {id}        |
-| DELETE 	| /api/objets/{id}   | supprimer l'objet {id}         |
-
+| Requête   | URI                 | Action                              |
+|-----------|---------------------|-------------------------------------|
+| GET       | /api/objets         | Renvoie la liste des objets         |
+| GET       | /api/objets/{id}    | Renvoie l'objet {id}                |
+| POST      | /api/objets         | Crée un nouvel objet                |
+| PUT/PATCH | /api/objets/{id}    | Met à jour l'objet {id}             |
+| DELETE    | /api/objets/{id}    | Supprime l'objet {id}               |
 
 ## Droits d'accès
 
@@ -51,6 +49,54 @@ Il faut s'identifier avec un utilisateur de l'application Deming pour pouvoir ac
 Cet utilisateur doit disposer du rôle "API".
 
 Lorsque l'authentification réussit, l'API envoie un "token" qui doit être passé dans l'entête "Authorization" de la requête de l'API.
+
+## Structure des réponses pour les endpoints show
+
+### GET /api/controls/{id} — mesure de sécurité
+
+Retourne les champs de la mesure de sécurité ainsi qu'une clé `controls` contenant les IDs
+des instances d'audit qui vérifient cette mesure :
+
+```json
+{
+  "id": 1,
+  "domain_id": 1,
+  "clause": "NIS2-Art.21.2.a",
+  "name": "Analyse de Risques",
+  "objective": "...",
+  "controls": [1, 2, 3]
+}
+```
+
+### GET /api/measures/{id} — instance d'audit
+
+Retourne les champs de l'instance d'audit ainsi qu'une clé `measures` contenant les IDs
+des mesures de sécurité couvertes par cette instance :
+
+```json
+{
+  "id": 1,
+  "name": "Revue formelle de l'analyse de risques",
+  "plan_date": "2026-07-31",
+  "realisation_date": null,
+  "status": 0,
+  "periodicity": 12,
+  "measures": [1]
+}
+```
+
+### POST/PUT /api/measures — champs liés optionnels
+
+Lors de la création ou de la mise à jour d'une instance d'audit, les clés suivantes sont
+acceptées pour mettre à jour les enregistrements liés :
+
+| Clé | Effet |
+|---|---|
+| `measures` | Synchronise la liste des IDs de mesures de sécurité liées à cette instance |
+| `actions` | Assigne des IDs d'actions à cette instance d'audit |
+| `documents` | Assigne des IDs de documents à cette instance d'audit |
+| `users` | Synchronise la liste des IDs d'utilisateurs assignés |
+| `groups` | Synchronise la liste des IDs de groupes d'utilisateurs assignés |
 
 ## Exemples
 
@@ -89,14 +135,11 @@ Voici quelques exemples d'utilisation de l'API avec PHP :
     } else {
         if ($info['http_code'] == 200) {
             $token = json_decode($response)->token;
-
         } else {
             error_log($response);
             error_log("No login api status 403");
         }
     }
-
-    var_dump($response);
 ```
 
 ### Liste des domaines
@@ -112,7 +155,7 @@ Voici quelques exemples d'utilisation de l'API avec PHP :
         CURLOPT_TIMEOUT => 30,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => "GET",
-        CURLOPT_POSTFIELDS => null, // here you can send parameters
+        CURLOPT_POSTFIELDS => null,
         CURLOPT_HTTPHEADER => array(
             "accept: application/json",
             "Authorization: " . "Bearer" . " " . $token . "",
@@ -121,29 +164,27 @@ Voici quelques exemples d'utilisation de l'API avec PHP :
         ),
     ));
 
-
     $response = curl_exec($curl);
     $err = curl_error($curl);
     curl_close($curl);
 
     var_dump($response);
-
 ```
 
-### Récupérer un domaine
+### Récupérer une mesure de sécurité
 
 ```php
 <?php
     $curl = curl_init();
 
     curl_setopt_array($curl, array(
-        CURLOPT_URL => "http://127.0.0.1:8000/api/domains/1",
+        CURLOPT_URL => "http://127.0.0.1:8000/api/controls/1",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_MAXREDIRS => 10,
         CURLOPT_TIMEOUT => 30,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => "GET",
-        CURLOPT_POSTFIELDS => null, // here you can send parameters
+        CURLOPT_POSTFIELDS => null,
         CURLOPT_HTTPHEADER => array(
             "accept: application/json",
             "Authorization: " . "Bearer" . " " . $token . "",
@@ -163,7 +204,7 @@ Voici quelques exemples d'utilisation de l'API avec PHP :
 
 ```php
 <?php
-   $curl = curl_init();
+    $curl = curl_init();
 
     curl_setopt_array($curl, array(
         CURLOPT_URL => "http://127.0.0.1:8000/api/domains/8",
@@ -176,9 +217,9 @@ Voici quelques exemples d'utilisation de l'API avec PHP :
         CURLOPT_POSTFIELDS => http_build_query(
             array(
                 'title' => 'Nouveau titre',
-                'description' => 'Nouvelle description'
-                )
-            ),
+                'description' => 'Nouvelle description',
+            )
+        ),
         CURLOPT_HTTPHEADER => array(
             "accept: application/json",
             "Authorization: " . "Bearer" . " " . $token . "",
@@ -193,9 +234,38 @@ Voici quelques exemples d'utilisation de l'API avec PHP :
     var_dump($response);
 ```
 
+### Récupérer une instance d'audit
+
+```php
+<?php
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => "http://127.0.0.1:8000/api/measures/1",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_POSTFIELDS => null,
+        CURLOPT_HTTPHEADER => array(
+            "accept: application/json",
+            "Authorization: " . "Bearer" . " " . $token . "",
+            "cache-control: no-cache",
+            "content-type: application/json",
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+    curl_close($curl);
+
+    var_dump($response);
+```
+
 ## Python
 
-Voici un exemple d'utilisation de l'API en Python
+Voici un exemple d'utilisation de l'API en Python :
 
 ```python
 #!/usr/bin/python3
@@ -213,24 +283,31 @@ print(response.status_code)
 
 vheaders['Authorization'] = "Bearer " + response.json()['token']
 
-print("Get domains")
-response = requests.get("http://127.0.0.1:8000/api/domains", headers=vheaders)
+print("Récupérer les mesures de sécurité")
+response = requests.get("http://127.0.0.1:8000/api/controls", headers=vheaders)
 print(response.status_code)
 print(response.json())
 
+print("Récupérer les instances d'audit")
+response = requests.get("http://127.0.0.1:8000/api/measures", headers=vheaders)
+print(response.status_code)
+print(response.json())
 ```
 
 ## bash
 
-Voici un exemple d'utilisation de l'API en ligne de commande avec [CURL](https://curl.se/docs/manpage.html) et [JQ](https://stedolan.github.io/jq/)
-```
-# valid login and password
+Voici un exemple d'utilisation de l'API en ligne de commande avec [CURL](https://curl.se/docs/manpage.html) et [JQ](https://stedolan.github.io/jq/) :
+
+```bash
+# identifiants valides
 data='{"email":"api@admin.localhost","password":"12345678"}'
 
-# get a token after correct login
+# obtenir un token après connexion réussie
 token=$(curl -s -d ${data} -H "Content-Type: application/json" http://localhost:8000/api/login | jq -r .token)
 
-# query users and decode JSON data with JQ.
-curl -s -H "Content-Type: application/json" -H "Authorization: Bearer ${token}" "http://127.0.0.1:8000/api/domains" | jq .
+# lister les mesures de sécurité
+curl -s -H "Content-Type: application/json" -H "Authorization: Bearer ${token}" "http://127.0.0.1:8000/api/controls" | jq .
 
+# lister les instances d'audit
+curl -s -H "Content-Type: application/json" -H "Authorization: Bearer ${token}" "http://127.0.0.1:8000/api/measures" | jq .
 ```

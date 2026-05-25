@@ -21,10 +21,10 @@
             <div class="cell-lg-3 cell-md-3">
                 <select id="filter-measure" name="measure_id" data-role="select">
                     <option value="">-- {{ trans('cruds.exception.fields.choose_measure') }} --</option>
-                    @foreach($measures as $measure)
-                        <option value="{{ $measure->id }}"
-                            {{ (string)($filters['measure_id'] ?? '') === (string)$measure->id ? 'selected' : '' }}>
-                            {{ $measure->clause }} – {{ $measure->name }}
+                    @foreach($controls as $control)
+                        <option value="{{ $control->id }}"
+                            {{ (string)($filters['measure_id'] ?? '') === (string)$control->id ? 'selected' : '' }}>
+                            {{ $control->clause }} – {{ $control->name }}
                         </option>
                     @endforeach
                 </select>

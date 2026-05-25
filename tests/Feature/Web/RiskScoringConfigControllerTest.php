@@ -55,18 +55,25 @@ test('admin can create a scoring config', function () {
 });
 
 test('admin can edit a scoring config', function () {
-    $config = RiskScoringConfig::first();
+    $config = RiskScoringConfig::create([
+        'name'               => 'Edit Test Config',
+        'formula'            => 'probability_x_impact',
+        'is_active'          => false,
+        'probability_levels' => [['value' => 1, 'label' => 'Rare', 'description' => '']],
+        'impact_levels'      => [['value' => 1, 'label' => 'Low',  'description' => '']],
+        'risk_thresholds'    => [['level' => 'low', 'label' => 'Low', 'max' => null, 'color' => '#27ae60']],
+    ]);
     $this->actingAs($this->admin)->get("/risk/scoring/{$config->id}/edit")->assertStatus(200);
 });
 
 test('admin can activate a scoring config', function () {
     $config = RiskScoringConfig::create([
-        'name' => 'Alternate Config',
-        'formula' => 'probability_x_impact',
-        'is_active' => false,
-        'probability_levels' => json_encode([['value' => 1, 'label' => 'Rare', 'description' => '']]),
-        'impact_levels' => json_encode([['value' => 1, 'label' => 'Low', 'description' => '']]),
-        'risk_thresholds' => json_encode([['level' => 'low', 'label' => 'Low', 'max' => null, 'color' => '#27ae60']]),
+        'name'               => 'Alternate Config',
+        'formula'            => 'probability_x_impact',
+        'is_active'          => false,
+        'probability_levels' => [['value' => 1, 'label' => 'Rare', 'description' => '']],
+        'impact_levels'      => [['value' => 1, 'label' => 'Low',  'description' => '']],
+        'risk_thresholds'    => [['level' => 'low', 'label' => 'Low', 'max' => null, 'color' => '#27ae60']],
     ]);
 
     $this->actingAs($this->admin)

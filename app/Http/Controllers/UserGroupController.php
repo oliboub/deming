@@ -19,7 +19,7 @@ class UserGroupController extends Controller
     public function index()
     {
         // Only for administrator role
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $userGroups = UserGroup::orderBy('name')->get();
 
@@ -34,7 +34,7 @@ class UserGroupController extends Controller
     public function create()
     {
         // Only for administrator role
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $all_users = User::select('id', 'name')->orderBy('name')->get();
 
@@ -54,7 +54,7 @@ class UserGroupController extends Controller
     public function store(Request $request)
     {
         // Only for administrator role
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Validate request data
         $this->validate($request, [
@@ -87,7 +87,7 @@ class UserGroupController extends Controller
     {
         // Only for administrator role
         abort_if(
-            (Auth::User() === null) || (Auth::User()->role !== 1),
+            (Auth::user() === null) || (Auth::user()->role !== 1),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -106,7 +106,7 @@ class UserGroupController extends Controller
     {
         // Only for administrator role
         abort_if(
-            (Auth::User() === null) || (Auth::User()->role !== 1),
+            (Auth::user() === null) || (Auth::user()->role !== 1),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -131,7 +131,7 @@ class UserGroupController extends Controller
     public function update(Request $request, UserGroup $group)
     {
         // Only for administrator role
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Validate request data
         $this->validate($request, [
@@ -162,7 +162,7 @@ class UserGroupController extends Controller
     public function destroy(UserGroup $group)
     {
         // Only for administrator role
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Remove users from controls
         $group->controls()->detach();

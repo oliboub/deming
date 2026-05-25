@@ -12,7 +12,7 @@ class AttributeController extends Controller
 {
     public function index()
     {
-        abort_if(Auth::User()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $attributes = Attribute::all();
 
@@ -21,7 +21,7 @@ class AttributeController extends Controller
 
     public function store(Request $request)
     {
-        abort_if(Auth::User()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $attribute = Attribute::create($request->all());
 
@@ -30,14 +30,14 @@ class AttributeController extends Controller
 
     public function show(Attribute $attribute)
     {
-        abort_if(Auth::User()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         return response()->json($attribute);
     }
 
     public function update(Request $request, Attribute $attribute)
     {
-        abort_if(Auth::User()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $attribute->update($request->all());
 
@@ -46,7 +46,7 @@ class AttributeController extends Controller
 
     public function destroy(Attribute $attribute)
     {
-        abort_if(Auth::User()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 4, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $attribute->delete();
 

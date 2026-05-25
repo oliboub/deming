@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Measure;
+use App\Models\Control;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +19,8 @@ class MeasureSeeder extends Seeder
         try {
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
             DB::table('control_measure')->delete();
-            DB::table('controls')->delete();
             DB::table('measures')->delete();
+            DB::table('controls')->delete();
         } finally {
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
@@ -41,7 +41,7 @@ class MeasureSeeder extends Seeder
         try {
             while (($data = fgetcsv($csvFile, 8000, ',')) !== false) {
                 if (!$firstline) {
-                    Measure::create([
+                    Control::create([
                         'domain_id'   => $data[0],
                         'clause'      => $data[1],
                         'name'        => $data[2],

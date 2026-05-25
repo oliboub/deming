@@ -15,7 +15,7 @@ class ConfigurationController extends Controller
     */
     public function index()
     {
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Get configuration
         $mail_from = config('deming.notification.mail-from');
@@ -48,7 +48,7 @@ class ConfigurationController extends Controller
     */
     public function save(Request $request)
     {
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Error and message variables
         $errors = Collect();

@@ -10,11 +10,20 @@ DROP TABLE IF EXISTS `action_measure`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `action_measure` (
   `action_id` int(10) unsigned NOT NULL,
-  `measure_id` int(10) unsigned NOT NULL,
+  `control_id` int(10) unsigned NOT NULL,
   KEY `action_measure_action_id_foreign` (`action_id`),
-  KEY `action_measure_measure_id_foreign` (`measure_id`),
+  KEY `action_measure_measure_id_foreign` (`control_id`),
   CONSTRAINT `action_measure_action_id_foreign` FOREIGN KEY (`action_id`) REFERENCES `actions` (`id`),
-  CONSTRAINT `action_measure_measure_id_foreign` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`)
+  CONSTRAINT `action_measure_measure_id_foreign` FOREIGN KEY (`control_id`) REFERENCES `controls` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `action_risk`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `action_risk` (
+  `risk_id` int(10) unsigned NOT NULL,
+  `action_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`risk_id`,`action_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `action_user`;
@@ -43,7 +52,7 @@ CREATE TABLE `actions` (
   `name` varchar(255) DEFAULT NULL,
   `cause` text DEFAULT NULL,
   `remediation` text DEFAULT NULL,
-  `control_id` int(10) unsigned DEFAULT NULL,
+  `measure_id` int(10) unsigned DEFAULT NULL,
   `creation_date` date DEFAULT NULL,
   `due_date` date DEFAULT NULL,
   `close_date` date DEFAULT NULL,
@@ -51,8 +60,8 @@ CREATE TABLE `actions` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `actions_control_id_foreign` (`control_id`),
-  CONSTRAINT `actions_control_id_foreign` FOREIGN KEY (`control_id`) REFERENCES `controls` (`id`)
+  KEY `actions_control_id_foreign` (`measure_id`),
+  CONSTRAINT `actions_control_id_foreign` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `attributes`;
@@ -100,11 +109,11 @@ DROP TABLE IF EXISTS `control_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `control_user` (
-  `control_id` int(10) unsigned NOT NULL,
+  `measure_id` int(10) unsigned NOT NULL,
   `user_id` bigint(20) unsigned NOT NULL,
-  KEY `control_id_fk_5920381` (`control_id`),
+  KEY `control_id_fk_5920381` (`measure_id`),
   KEY `user_id_fk_5837573` (`user_id`),
-  CONSTRAINT `control_id_fk_49294573` FOREIGN KEY (`control_id`) REFERENCES `controls` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `control_id_fk_49294573` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT `user_id_fk_304958543` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -112,11 +121,11 @@ DROP TABLE IF EXISTS `control_user_group`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `control_user_group` (
-  `control_id` int(10) unsigned NOT NULL,
+  `measure_id` int(10) unsigned NOT NULL,
   `user_group_id` int(10) unsigned NOT NULL,
-  KEY `control_user_group_control_id_foreign` (`control_id`),
+  KEY `control_user_group_control_id_foreign` (`measure_id`),
   KEY `control_user_group_user_group_id_foreign` (`user_group_id`),
-  CONSTRAINT `control_user_group_control_id_foreign` FOREIGN KEY (`control_id`) REFERENCES `controls` (`id`),
+  CONSTRAINT `control_user_group_control_id_foreign` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`),
   CONSTRAINT `control_user_group_user_group_id_foreign` FOREIGN KEY (`user_group_id`) REFERENCES `user_groups` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -124,65 +133,6 @@ DROP TABLE IF EXISTS `controls`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `controls` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `objective` text DEFAULT NULL,
-  `input` text DEFAULT NULL,
-  `model` text DEFAULT NULL,
-  `indicator` text DEFAULT NULL,
-  `action_plan` longtext DEFAULT NULL,
-  `periodicity` int(11) DEFAULT NULL,
-  `plan_date` date NOT NULL,
-  `realisation_date` date DEFAULT NULL,
-  `observations` longtext DEFAULT NULL,
-  `score` int(11) DEFAULT NULL,
-  `note` decimal(5,2) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  `next_id` int(10) unsigned DEFAULT NULL,
-  `standard` varchar(255) DEFAULT NULL,
-  `attributes` varchar(1024) DEFAULT NULL,
-  `scope` varchar(32) DEFAULT NULL,
-  `status` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  KEY `fk_controls_next_id` (`next_id`),
-  CONSTRAINT `fk_controls_next_id` FOREIGN KEY (`next_id`) REFERENCES `controls` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `documents`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `documents` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `control_id` int(10) unsigned NOT NULL,
-  `filename` varchar(255) NOT NULL,
-  `mimetype` varchar(255) NOT NULL,
-  `size` int(11) NOT NULL,
-  `hash` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `documents_control_id_foreign` (`control_id`),
-  CONSTRAINT `documents_control_id_foreign` FOREIGN KEY (`control_id`) REFERENCES `controls` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `domains`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `domains` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `framework` varchar(255) DEFAULT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `measures`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `measures` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `domain_id` int(10) unsigned NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -200,6 +150,106 @@ CREATE TABLE `measures` (
   UNIQUE KEY `measures_clause_unique` (`clause`),
   KEY `measures_domain_id_foreign` (`domain_id`),
   CONSTRAINT `measures_domain_id_foreign` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `documents` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `measure_id` int(10) unsigned NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `mimetype` varchar(255) NOT NULL,
+  `size` int(11) NOT NULL,
+  `hash` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `documents_control_id_foreign` (`measure_id`),
+  CONSTRAINT `documents_control_id_foreign` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `domains`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `domains` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `framework` varchar(255) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `exceptions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `exceptions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `control_id` int(10) unsigned DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `justification` text DEFAULT NULL,
+  `compensating_controls` text DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `status` tinyint(4) NOT NULL DEFAULT 0,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `submitted_by` bigint(20) unsigned DEFAULT NULL,
+  `submitted_at` timestamp NULL DEFAULT NULL,
+  `approved_by` bigint(20) unsigned DEFAULT NULL,
+  `approved_at` timestamp NULL DEFAULT NULL,
+  `approval_comment` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `exceptions_measure_id_foreign` (`control_id`),
+  KEY `exceptions_created_by_foreign` (`created_by`),
+  KEY `exceptions_submitted_by_foreign` (`submitted_by`),
+  KEY `exceptions_approved_by_foreign` (`approved_by`),
+  CONSTRAINT `exceptions_approved_by_foreign` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `exceptions_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `exceptions_measure_id_foreign` FOREIGN KEY (`control_id`) REFERENCES `controls` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `exceptions_submitted_by_foreign` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `measure_risk`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `measure_risk` (
+  `risk_id` int(10) unsigned NOT NULL,
+  `measure_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`risk_id`,`measure_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `measures`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `measures` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `objective` text DEFAULT NULL,
+  `input` text DEFAULT NULL,
+  `model` text DEFAULT NULL,
+  `indicator` text DEFAULT NULL,
+  `action_plan` longtext DEFAULT NULL,
+  `periodicity` int(11) DEFAULT NULL,
+  `plan_date` date NOT NULL,
+  `realisation_date` date DEFAULT NULL,
+  `observations` longtext DEFAULT NULL,
+  `score` int(11) DEFAULT NULL,
+  `note` decimal(9,2) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `next_id` int(10) unsigned DEFAULT NULL,
+  `standard` varchar(255) DEFAULT NULL,
+  `attributes` varchar(1024) DEFAULT NULL,
+  `scope` varchar(32) DEFAULT NULL,
+  `status` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `fk_controls_next_id` (`next_id`),
+  CONSTRAINT `fk_controls_next_id` FOREIGN KEY (`next_id`) REFERENCES `measures` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `migrations`;
@@ -262,6 +312,25 @@ CREATE TABLE `oauth_clients` (
   KEY `oauth_clients_user_id_index` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `oauth_device_codes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `oauth_device_codes` (
+  `id` char(80) NOT NULL,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `client_id` char(36) NOT NULL,
+  `user_code` char(8) NOT NULL,
+  `scopes` text NOT NULL,
+  `revoked` tinyint(1) NOT NULL,
+  `user_approved_at` datetime DEFAULT NULL,
+  `last_polled_at` datetime DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `oauth_device_codes_user_code_unique` (`user_code`),
+  KEY `oauth_device_codes_user_id_index` (`user_id`),
+  KEY `oauth_device_codes_client_id_index` (`client_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `oauth_personal_access_clients`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -312,6 +381,52 @@ CREATE TABLE `personal_access_tokens` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
   KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `risk_scoring_configs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `risk_scoring_configs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `formula` varchar(255) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 0,
+  `probability_levels` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`probability_levels`)),
+  `impact_levels` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`impact_levels`)),
+  `exposure_levels` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`exposure_levels`)),
+  `vulnerability_levels` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`vulnerability_levels`)),
+  `risk_thresholds` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`risk_thresholds`)),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `risk_scoring_configs_is_active_index` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `risks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `risks` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `owner_id` int(10) unsigned DEFAULT NULL,
+  `probability` tinyint(4) NOT NULL DEFAULT 1,
+  `probability_comment` text DEFAULT NULL,
+  `impact` tinyint(4) NOT NULL DEFAULT 1,
+  `impact_comment` text DEFAULT NULL,
+  `status` enum('not_evaluated','not_accepted','temporarily_accepted','accepted','mitigated','transferred','avoided') NOT NULL DEFAULT 'not_evaluated',
+  `status_comment` text DEFAULT NULL,
+  `review_frequency` smallint(5) unsigned NOT NULL DEFAULT 12,
+  `next_review_at` date DEFAULT NULL,
+  `exposure` tinyint(4) DEFAULT NULL COMMENT 'v2 - BSI 200-3',
+  `vulnerability` tinyint(4) DEFAULT NULL COMMENT 'v2 - BSI 200-3',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `risks_status_index` (`status`),
+  KEY `risks_owner_id_index` (`owner_id`),
+  KEY `risks_next_review_at_index` (`next_review_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `user_groups`;
@@ -402,3 +517,10 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (71,'2025_02_05_121
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (72,'2025_04_29_123908_add_user_group',4);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (76,'2025_05_27_152856_change_actions',5);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (77,'2025_07_31_090259_alter_note_on_controls_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (78,'2024_06_01_000001_create_oauth_device_codes_table',6);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (79,'2026_04_07_151247_create_risk_table',6);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (80,'2026_04_07_152854_create_risk_scoring_table',6);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (81,'2026_04_16_081633_change_note_precision_in_controls_table',7);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (83,'2026_04_23_160957_create_exceptions_table',8);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (84,'2026_05_21_000001_swap_measures_controls_tables',9);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (85,'2026_05_21_000002_fix_control_measure_foreign_keys',10);

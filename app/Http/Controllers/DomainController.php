@@ -32,18 +32,18 @@ class DomainController extends Controller
                     'domains.title',
                     'domains.description',
                     DB::raw('(
-                    SELECT COUNT(DISTINCT m.id)
-                    FROM measures m
-                    WHERE m.domain_id = domains.id
+                    SELECT COUNT(DISTINCT c.id)
+                    FROM controls c
+                    WHERE c.domain_id = domains.id
                     AND EXISTS (
                         SELECT 1
                         FROM control_measure cm
-                        WHERE cm.measure_id = m.id
+                        WHERE cm.control_id = c.id
                         AND (
                             EXISTS (
                                 SELECT 1
                                 FROM control_user cu
-                                WHERE cu.control_id = cm.control_id
+                                WHERE cu.measure_id = cm.measure_id
                                 AND cu.user_id = ?
                             )
                             OR EXISTS (
@@ -51,7 +51,7 @@ class DomainController extends Controller
                                 FROM control_user_group cug
                                 INNER JOIN user_user_group uug
                                     ON uug.user_group_id = cug.user_group_id
-                                WHERE cug.control_id = cm.control_id
+                                WHERE cug.measure_id = cm.measure_id
                                 AND uug.user_id = ?
                             )
                         )
@@ -69,9 +69,9 @@ class DomainController extends Controller
                     'domains.framework',
                     'domains.title',
                     'domains.description',
-                    DB::raw('COUNT(measures.id) AS measures_count')
+                    DB::raw('COUNT(controls.id) AS measures_count')
                 )
-                ->leftJoin('measures', 'measures.domain_id', '=', 'domains.id')
+                ->leftJoin('controls', 'controls.domain_id', '=', 'domains.id')
                 ->groupBy('domains.id', 'domains.framework', 'domains.title', 'domains.description')
                 ->orderBy('domains.title')
                 ->get();
@@ -87,7 +87,7 @@ class DomainController extends Controller
     public function create()
     {
         // Only for administrator role
-        abort_if(!Auth::User()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         return view('domains.create');
     }
@@ -102,7 +102,7 @@ class DomainController extends Controller
     public function store(Request $request)
     {
         // Only for administrator role
-        abort_if(!Auth::User()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $this->validate(
             $request,
@@ -146,7 +146,7 @@ class DomainController extends Controller
     public function edit(int $id)
     {
         // Only for administrator role
-        abort_if(!Auth::User()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $domain = Domain::find($id);
 
@@ -164,7 +164,7 @@ class DomainController extends Controller
     public function update(Request $request, Domain $domain)
     {
         // Only for administrator role
-        abort_if(!Auth::User()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $this->validate(
             $request,
@@ -193,7 +193,7 @@ class DomainController extends Controller
     public function destroy(Domain $domain)
     {
         // Only for administrator role
-        abort_if(!Auth::User()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Has measures ?
         if (DB::table('measures')
@@ -221,7 +221,7 @@ class DomainController extends Controller
     public function export(): BinaryFileResponse
     {
         abort_if(
-            !Auth::User()->isAdmin(),
+            !Auth::user()->isAdmin(),
             Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         return Excel::download(new DomainsExport(), 'domains.xlsx');

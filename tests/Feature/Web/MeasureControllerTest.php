@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\Control;
 use App\Models\Domain;
-use App\Models\Measure;
 use App\Models\User;
 
 beforeEach(function () {
@@ -15,7 +15,7 @@ test('guest is redirected to login', function () {
 });
 
 test('admin can list measures', function () {
-    Measure::factory()->count(3)->create();
+    Control::factory()->count(3)->create();
     $this->actingAs($this->admin)->get('/alice/index')->assertStatus(200);
 });
 
@@ -49,7 +49,7 @@ test('admin can create a measure', function () {
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('measures', ['clause' => '5.1.1']);
+    $this->assertDatabaseHas('controls', ['clause' => '5.1.1']);
 });
 
 test('non-admin user can create a measure', function () {
@@ -64,7 +64,7 @@ test('non-admin user can create a measure', function () {
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('measures', ['clause' => '5.1.2']);
+    $this->assertDatabaseHas('controls', ['clause' => '5.1.2']);
 });
 
 test('auditor cannot create a measure', function () {
@@ -80,53 +80,53 @@ test('auditor cannot create a measure', function () {
 });
 
 test('admin can view a measure', function () {
-    $measure = Measure::factory()->create();
-    $this->actingAs($this->admin)->get("/alice/show/{$measure->id}")->assertStatus(200);
+    $control = Control::factory()->create();
+    $this->actingAs($this->admin)->get("/alice/show/{$control->id}")->assertStatus(200);
 });
 
 test('admin can edit a measure', function () {
-    $measure = Measure::factory()->create();
-    $this->actingAs($this->admin)->get("/alice/{$measure->id}/edit")->assertStatus(200);
+    $control = Control::factory()->create();
+    $this->actingAs($this->admin)->get("/alice/{$control->id}/edit")->assertStatus(200);
 });
 
 test('auditor cannot edit a measure', function () {
-    $measure = Measure::factory()->create();
-    $this->actingAs($this->auditor)->get("/alice/{$measure->id}/edit")->assertStatus(403);
+    $control = Control::factory()->create();
+    $this->actingAs($this->auditor)->get("/alice/{$control->id}/edit")->assertStatus(403);
 });
 
 test('admin can update a measure', function () {
-    $measure = Measure::factory()->create();
+    $control = Control::factory()->create();
 
     $this->actingAs($this->admin)
-        ->post("/alice/save/{$measure->id}", [
-            'domain_id' => $measure->domain_id,
-            'clause' => $measure->clause,
+        ->post("/alice/save/{$control->id}", [
+            'domain_id' => $control->domain_id,
+            'clause' => $control->clause,
             'name' => 'Updated Measure Name',
             'objective' => 'Updated objective text here',
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('measures', ['id' => $measure->id, 'name' => 'Updated Measure Name']);
+    $this->assertDatabaseHas('controls', ['id' => $control->id, 'name' => 'Updated Measure Name']);
 });
 
 test('admin can delete a measure', function () {
-    $measure = Measure::factory()->create();
+    $control = Control::factory()->create();
 
     $this->actingAs($this->admin)
-        ->post("/alice/delete/{$measure->id}")
+        ->post("/alice/delete/{$control->id}")
         ->assertRedirect();
 
-    $this->assertDatabaseMissing('measures', ['id' => $measure->id]);
+    $this->assertDatabaseMissing('controls', ['id' => $control->id]);
 });
 
 test('auditor cannot delete a measure', function () {
-    $measure = Measure::factory()->create();
+    $control = Control::factory()->create();
     $this->actingAs($this->auditor)
-        ->post("/alice/delete/{$measure->id}")
+        ->post("/alice/delete/{$control->id}")
         ->assertStatus(403);
 });
 
 test('admin can export measures', function () {
-    Measure::factory()->count(2)->create();
+    Control::factory()->count(2)->create();
     $this->actingAs($this->admin)->get('/export/alices')->assertStatus(200);
 });

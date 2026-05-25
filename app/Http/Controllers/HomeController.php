@@ -29,7 +29,7 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        abort_if(Auth::User()->isAPI(),Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->isAPI(),Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Fetch counts and data using optimized queries
         $activeDomainsCount = $this->getActiveDomainsCount();
@@ -73,9 +73,9 @@ class HomeController extends Controller
 
     private function getActiveDomainsCount()
     {
-        $query = DB::table('controls')
-            ->join('control_measure', 'controls.id', '=', 'control_id')
-            ->join('measures', 'control_measure.measure_id', '=', 'measures.id');
+        $query = DB::table('measures')
+            ->join('control_measure', 'measures.id', '=', 'measure_id')
+            ->join('controls', 'control_measure.control_id', '=', 'controls.id');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -84,26 +84,26 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'controls.id')
+                        ->whereColumn('control_user.measure_id', 'measures.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'controls.id')
+                            ->whereColumn('control_user_group.measure_id', 'measures.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             });
         }
 
         return $query->whereIn('status', [0, 1])
-            ->distinct('measures.domain_id')
-            ->count('measures.domain_id');
+            ->distinct('controls.domain_id')
+            ->count('controls.domain_id');
     }
     private function getControlsCount()
     {
-        $query = DB::table('measures');
+        $query = DB::table('controls');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -111,19 +111,19 @@ class HomeController extends Controller
             $query->whereExists(function($q) use ($userId) {
                 $q->select(DB::raw(1))
                     ->from('control_measure')
-                    ->whereColumn('control_measure.measure_id', 'measures.id')
+                    ->whereColumn('control_measure.control_id', 'controls.id')
                     ->where(function($subQuery) use ($userId) {
                         $subQuery->whereExists(function($subQ) use ($userId) {
                             $subQ->select(DB::raw(1))
                                 ->from('control_user')
-                                ->whereColumn('control_user.control_id', 'control_measure.control_id')
+                                ->whereColumn('control_user.measure_id', 'control_measure.measure_id')
                                 ->where('control_user.user_id', $userId);
                         })
                             ->orWhereExists(function($subQ) use ($userId) {
                                 $subQ->select(DB::raw(1))
                                     ->from('control_user_group')
                                     ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                                    ->whereColumn('control_user_group.control_id', 'control_measure.control_id')
+                                    ->whereColumn('control_user_group.measure_id', 'control_measure.measure_id')
                                     ->where('user_user_group.user_id', $userId);
                             });
                     });
@@ -135,7 +135,7 @@ class HomeController extends Controller
 
     private function getActiveMeasuresCount()
     {
-        $query = DB::table('controls');
+        $query = DB::table('measures');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -144,14 +144,14 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'controls.id')
+                        ->whereColumn('control_user.measure_id', 'measures.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'controls.id')
+                            ->whereColumn('control_user_group.measure_id', 'measures.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             });
@@ -163,7 +163,7 @@ class HomeController extends Controller
 
     private function getControlsMadeCount()
     {
-        $query = DB::table('controls');
+        $query = DB::table('measures');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -172,14 +172,14 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'controls.id')
+                        ->whereColumn('control_user.measure_id', 'measures.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'controls.id')
+                            ->whereColumn('control_user_group.measure_id', 'measures.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             })
@@ -192,8 +192,8 @@ class HomeController extends Controller
 
     private function getControlsNeverMade()
     {
-        $query = DB::table('controls as c1')
-            ->leftJoin('controls as c2', 'c2.next_id', '=', 'c1.id');
+        $query = DB::table('measures as c1')
+            ->leftJoin('measures as c2', 'c2.next_id', '=', 'c1.id');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -202,14 +202,14 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'c1.id')
+                        ->whereColumn('control_user.measure_id', 'c1.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'c1.id')
+                            ->whereColumn('control_user_group.measure_id', 'c1.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             });
@@ -222,7 +222,7 @@ class HomeController extends Controller
 
     private function getPlanedControlsThisMonthCount()
     {
-        $query = DB::table('controls');
+        $query = DB::table('measures');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -231,14 +231,14 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'controls.id')
+                        ->whereColumn('control_user.measure_id', 'measures.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'controls.id')
+                            ->whereColumn('control_user_group.measure_id', 'measures.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             });
@@ -255,7 +255,7 @@ class HomeController extends Controller
 
     private function getLateControlsCount()
     {
-        $query = DB::table('controls');
+        $query = DB::table('measures');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -264,14 +264,14 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'controls.id')
+                        ->whereColumn('control_user.measure_id', 'measures.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'controls.id')
+                            ->whereColumn('control_user_group.measure_id', 'measures.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             });
@@ -303,12 +303,12 @@ class HomeController extends Controller
 
     private function getActiveControls()
     {
-        $query = DB::table('controls as c1')
-            ->select(['c1.id', 'measures.id', 'domains.title', 'c1.realisation_date', 'c1.score'])
-            ->join('controls as c2', 'c2.id', '=', 'c1.next_id')
-            ->join('control_measure', 'control_measure.control_id', '=', 'c1.id')
-            ->join('measures', 'control_measure.measure_id', '=', 'measures.id')
-            ->join('domains', 'domains.id', '=', 'measures.domain_id');
+        $query = DB::table('measures as c1')
+            ->select(['c1.id', 'controls.id', 'domains.title', 'c1.realisation_date', 'c1.score'])
+            ->join('measures as c2', 'c2.id', '=', 'c1.next_id')
+            ->join('control_measure', 'control_measure.measure_id', '=', 'c1.id')
+            ->join('controls', 'control_measure.control_id', '=', 'controls.id')
+            ->join('domains', 'domains.id', '=', 'controls.domain_id');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -317,14 +317,14 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'c1.id')
+                        ->whereColumn('control_user.measure_id', 'c1.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'c1.id')
+                            ->whereColumn('control_user_group.measure_id', 'c1.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             });
@@ -336,12 +336,12 @@ class HomeController extends Controller
     }
     private function getControlsTodo()
     {
-        $query = DB::table('controls as c1')
+        $query = DB::table('measures as c1')
             ->select([
                 'c1.id', 'c1.name', 'c1.scope', 'c1.plan_date', 'c1.status',
                 'c2.id as prev_id', 'c2.realisation_date as prev_date', 'c2.score as score',
             ])
-            ->leftJoin('controls as c2', 'c1.id', '=', 'c2.next_id');
+            ->leftJoin('measures as c2', 'c1.id', '=', 'c2.next_id');
 
         // Filtrer uniquement si l'utilisateur est Auditee
         if (Auth::user()->isAuditee()) {
@@ -350,22 +350,22 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'c1.id')
+                        ->whereColumn('control_user.measure_id', 'c1.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'c1.id')
+                            ->whereColumn('control_user_group.measure_id', 'c1.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             })
-                // Uniquement les contrôle à faire
+                // Uniquement les mesures à faire
                 ->where('c1.status', '=', 0);
         }
         else
-            // Pour les contrôles à faire et à valider
+            // Pour les mesures à faire et à valider
             $query = $query->whereIn('c1.status', [0, 1]);
 
         $controlsTodo = $query
@@ -373,20 +373,20 @@ class HomeController extends Controller
             ->orderBy('c1.plan_date')
             ->get();
 
-        // Fetch related control measures in a single query
+        // Fetch related security measures (controls) in a single query
         $controlMeasures = DB::table('control_measure')
-            ->select(['control_id', 'measure_id', 'clause'])
-            ->leftJoin('measures', 'measures.id', '=', 'measure_id')
-            ->whereIn('control_id', $controlsTodo->pluck('id'))
+            ->select(['measure_id', 'control_id', 'clause'])
+            ->leftJoin('controls', 'controls.id', '=', 'control_id')
+            ->whereIn('measure_id', $controlsTodo->pluck('id'))
             ->orderBy('clause')
             ->get()
-            ->groupBy('control_id');
+            ->groupBy('measure_id');
 
-        // Map over controlsTodo to add measures
+        // Map over controlsTodo to add security measure (control) data
         $controlsTodo->map(function ($control) use ($controlMeasures) {
             $control->measures = $controlMeasures->get($control->id, collect())->map(function ($controlMeasure) {
                 return [
-                    'id' => $controlMeasure->measure_id,
+                    'id' => $controlMeasure->control_id,
                     'clause' => $controlMeasure->clause,
                 ];
             });
@@ -397,7 +397,7 @@ class HomeController extends Controller
     }
     private function getExpandedControls()
     {
-        $query = DB::table('controls')
+        $query = DB::table('measures')
             ->select('id', 'score', 'realisation_date', 'plan_date', 'periodicity');
 
         // Filtrer uniquement si l'utilisateur est Auditee
@@ -407,45 +407,45 @@ class HomeController extends Controller
                 $q->whereExists(function($subQ) use ($userId) {
                     $subQ->select(DB::raw(1))
                         ->from('control_user')
-                        ->whereColumn('control_user.control_id', 'controls.id')
+                        ->whereColumn('control_user.measure_id', 'measures.id')
                         ->where('control_user.user_id', $userId);
                 })
                     ->orWhereExists(function($subQ) use ($userId) {
                         $subQ->select(DB::raw(1))
                             ->from('control_user_group')
                             ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                            ->whereColumn('control_user_group.control_id', 'controls.id')
+                            ->whereColumn('control_user_group.measure_id', 'measures.id')
                             ->where('user_user_group.user_id', $userId);
                     });
             });
         }
 
-        $controls = $query->get();
+        $measures = $query->get();
 
-        return $controls->flatMap(function ($control) {
-            $expanded = collect([$control]);
+        return $measures->flatMap(function ($measure) {
+            $expanded = collect([$measure]);
 
-            if ($control->realisation_date === null) {
-                if ($control->periodicity === -1) {
+            if ($measure->realisation_date === null) {
+                if ($measure->periodicity === -1) {
                     for ($i = 1; $i <= 32; $i++) {
-                        $repeatedControl = clone $control;
-                        $repeatedControl->id = null;
-                        $repeatedControl->score = null;
-                        $repeatedControl->observations = null;
-                        $repeatedControl->realisation_date = null;
-                        $repeatedControl->plan_date = Carbon::parse($control->plan_date)->addDays($i * 7);
-                        $expanded->push($repeatedControl);
+                        $repeatedMeasure = clone $measure;
+                        $repeatedMeasure->id = null;
+                        $repeatedMeasure->score = null;
+                        $repeatedMeasure->observations = null;
+                        $repeatedMeasure->realisation_date = null;
+                        $repeatedMeasure->plan_date = Carbon::parse($measure->plan_date)->addDays($i * 7);
+                        $expanded->push($repeatedMeasure);
                     }
                 }
-                else if ($control->periodicity > 0 && $control->periodicity <= 12) {
-                    for ($i = 1; $i <= 12 / $control->periodicity; $i++) {
-                        $repeatedControl = clone $control;
-                        $repeatedControl->id = null;
-                        $repeatedControl->score = null;
-                        $repeatedControl->observations = null;
-                        $repeatedControl->realisation_date = null;
-                        $repeatedControl->plan_date = Carbon::parse($control->plan_date)->addMonthsNoOverflow($i * $control->periodicity);
-                        $expanded->push($repeatedControl);
+                else if ($measure->periodicity > 0 && $measure->periodicity <= 12) {
+                    for ($i = 1; $i <= 12 / $measure->periodicity; $i++) {
+                        $repeatedMeasure = clone $measure;
+                        $repeatedMeasure->id = null;
+                        $repeatedMeasure->score = null;
+                        $repeatedMeasure->observations = null;
+                        $repeatedMeasure->realisation_date = null;
+                        $repeatedMeasure->plan_date = Carbon::parse($measure->plan_date)->addMonthsNoOverflow($i * $measure->periodicity);
+                        $expanded->push($repeatedMeasure);
                     }
                 }
             }

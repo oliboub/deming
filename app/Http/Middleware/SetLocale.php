@@ -15,8 +15,8 @@ class SetLocale
             return $next($request);
         }
 
-        if (isset(Auth::User()->language)) {
-            app()->setLocale(Auth::User()->language);
+        if (isset(Auth::user()->language)) {
+            app()->setLocale(Auth::user()->language);
             return $next($request);
         }
 

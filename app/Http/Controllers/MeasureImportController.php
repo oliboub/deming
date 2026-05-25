@@ -25,7 +25,7 @@ class MeasureImportController extends Controller
     public function show()
     {
         // Only for Administrator
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $models = Storage::disk('local')->files('repository');
 
@@ -49,7 +49,7 @@ class MeasureImportController extends Controller
 
     public function download(Request $request)
     {
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         \Log::debug('download called');
 
@@ -89,7 +89,7 @@ class MeasureImportController extends Controller
     public function import(Request $request)
     {
         // Only for Administrator
-        abort_if(Auth::User()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->role !== 1, Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $request->validate([
             'file' => 'required_without:model|mimes:xls,xlsx',
@@ -236,7 +236,7 @@ class MeasureImportController extends Controller
                 $errors->push(($line + 1) . ': close name too long');
                 continue;
             }
-            if (! $clear && Measure::where('clause', $data[$line][3])->exists()) {
+            if (! $clear && Control::where('clause', $data[$line][3])->exists()) {
                 $errors->push(($line + 1) . ': close name not unique');
                 continue;
             }
@@ -286,10 +286,10 @@ class MeasureImportController extends Controller
             ) {
                 // delete documents
                 $documents = DB::table('documents')
-                    ->join('controls', 'controls.id', '=', 'documents.control_id')
-                    ->join('measures', 'measures.id', '=', 'controls.measure_id')
-                    ->where('measures.clause', $data[$line][3])
-                    ->select('documents.id', )
+                    ->join('measures', 'measures.id', '=', 'documents.measure_id')
+                    ->join('controls', 'controls.id', '=', 'measures.control_id')
+                    ->where('controls.clause', $data[$line][3])
+                    ->select('documents.id')
                     ->get();
 
                 foreach ($documents as $document) {
@@ -298,22 +298,22 @@ class MeasureImportController extends Controller
                     $deleteDocumentCount++;
                 }
 
-                // Break link between controls
-                Control::join('measures', 'measures.id', '=', 'controls.measure_id')
-                    ->where('measures.clause', $data[$line][3])
+                // Break link between audit instances
+                Measure::join('controls', 'controls.id', '=', 'measures.control_id')
+                    ->where('controls.clause', $data[$line][3])
                     ->update(['next_id' => null]);
 
-                // Delete controls
-                $controls = Control::join('measures', 'measures.id', '=', 'controls.measure_id')
-                    ->where('measures.clause', $data[$line][3])
-                    ->get(['controls.id']);
+                // Delete audit instances (measures)
+                $oldMeasures = Measure::join('controls', 'controls.id', '=', 'measures.control_id')
+                    ->where('controls.clause', $data[$line][3])
+                    ->get(['measures.id']);
 
-                Control::destroy($controls->toArray());
+                Measure::destroy($oldMeasures->toArray());
 
-                $deleteControlCount += count($controls);
+                $deleteControlCount += count($oldMeasures);
 
-                // delete measure
-                measure::where('clause', $data[$line][3])->delete();
+                // delete security measure (control)
+                Control::where('clause', $data[$line][3])->delete();
 
                 // TODO: delete empty domains
 
@@ -321,9 +321,9 @@ class MeasureImportController extends Controller
                 continue;
             }
             // update or insert ?
-            $measure = Measure::where('clause', $data[$line][3])->first();
+            $control = Control::where('clause', $data[$line][3])->first();
 
-            if ($measure !== null) {
+            if ($control !== null) {
                 // update or create domain
                 $domain = Domain
                     ::where('framework', trim($data[$line][0]))
@@ -343,16 +343,16 @@ class MeasureImportController extends Controller
                     $domain->update();
                 }
 
-                // update measure
-                $measure->name = $data[$line][4];
-                $measure->domain_id = $domain->id;
-                $measure->objective = $data[$line][5];
-                $measure->attributes = $data[$line][6];
-                $measure->input = $data[$line][7];
-                $measure->model = $data[$line][8];
-                $measure->indicator = $data[$line][9];
-                $measure->action_plan = $data[$line][10];
-                $measure->update();
+                // update security measure (control)
+                $control->name = $data[$line][4];
+                $control->domain_id = $domain->id;
+                $control->objective = $data[$line][5];
+                $control->attributes = $data[$line][6];
+                $control->input = $data[$line][7];
+                $control->model = $data[$line][8];
+                $control->indicator = $data[$line][9];
+                $control->action_plan = $data[$line][10];
+                $control->update();
 
                 $updateCount++;
             } else {
@@ -378,20 +378,20 @@ class MeasureImportController extends Controller
                     $domain->update();
                 }
 
-                // create measure
-                $measure = new Measure();
+                // create security measure (control)
+                $control = new Control();
 
-                $measure->domain_id = $domain->id;
-                $measure->clause = $data[$line][3];
-                $measure->name = $data[$line][4];
-                $measure->objective = $data[$line][5];
-                $measure->attributes = $data[$line][6];
-                $measure->input = $data[$line][7];
-                $measure->model = $data[$line][8];
-                $measure->indicator = $data[$line][9];
-                $measure->action_plan = $data[$line][10];
+                $control->domain_id = $domain->id;
+                $control->clause = $data[$line][3];
+                $control->name = $data[$line][4];
+                $control->objective = $data[$line][5];
+                $control->attributes = $data[$line][6];
+                $control->input = $data[$line][7];
+                $control->model = $data[$line][8];
+                $control->indicator = $data[$line][9];
+                $control->action_plan = $data[$line][10];
 
-                $measure->save();
+                $control->save();
 
                 $insertCount++;
             }
@@ -427,11 +427,11 @@ class MeasureImportController extends Controller
         // Delete all documents
         Document::truncate();
 
-        // Delete all controls
-        Control::truncate();
-
-        // Delete all measures
+        // Delete all audit instances
         Measure::truncate();
+
+        // Delete all security measures
+        Control::truncate();
 
         // Delete all domains
         Domain::truncate();

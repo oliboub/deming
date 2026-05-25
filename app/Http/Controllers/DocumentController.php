@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 // Models
-use App\Models\Control;
 use App\Models\Document;
+use App\Models\Measure;
 // Framework
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -48,7 +48,7 @@ class DocumentController extends Controller
     {
         // Only for administrator
         abort_if(
-            (Auth::User()->role !== 1),
+            (Auth::user()->role !== 1),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -82,7 +82,7 @@ class DocumentController extends Controller
     {
         // Not for API
         abort_if(
-            (Auth::User()->role === 4),
+            (Auth::user()->role === 4),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -92,12 +92,12 @@ class DocumentController extends Controller
         // Document not found
         abort_if($document === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
-        // Auditee may get documents from assigned controls only
+        // Auditee may get documents from assigned measures only
         abort_if(
-            (Auth::User()->role === 5) &&
+            (Auth::user()->role === 5) &&
             ! DB::table('control_user')
-                ->where('user_id', Auth::User()->id)
-                ->where('control_id', $document->control_id)
+                ->where('user_id', Auth::user()->id)
+                ->where('measure_id', $document->measure_id)
                 ->exists(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
@@ -124,26 +124,26 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
         // Not for API
-        abort_if((Auth::User()->isAPI()), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if((Auth::user()->isAPI()), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         // Get file
         $file = $request->file('file');
 
-        // Get Control
-        $control_id = $request->get('control');
+        // Get Measure (audit instance)
+        $measure_id = $request->get('control');
 
-        // Auditee may save document to assigned control only
+        // Auditee may save document to assigned measure only
         abort_if(
-            Auth::User()->role === 5 &&
+            Auth::user()->role === 5 &&
             ! (DB::table('control_user')
-                    ->where('control_id', $control_id)
-                    ->where('user_id', Auth::User()->id)
+                    ->where('measure_id', $measure_id)
+                    ->where('user_id', Auth::user()->id)
                     ->exists()
                 ||
                 DB::table('control_user_group')
                     ->join('user_user_group', 'control_user_group.user_group_id', '=', 'user_user_group.user_group_id')
-                    ->where('control_user_group.control_id', $control_id)
-                    ->where('user_user_group.user_id', Auth::User()->id)
+                    ->where('control_user_group.measure_id', $measure_id)
+                    ->where('user_user_group.user_id', Auth::user()->id)
                     ->exists()),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
@@ -157,7 +157,7 @@ class DocumentController extends Controller
 
         // Create new document record
         $doc = new Document();
-        $doc->control_id = $control_id;
+        $doc->measure_id = $measure_id;
         $doc->filename = $file->getClientOriginalName();
         $doc->mimetype = $file->getClientMimeType();
         $doc->size = $file->getSize();
@@ -201,8 +201,8 @@ class DocumentController extends Controller
     {
         // Not for API and Auditor
         abort_if(
-            (Auth::User()->role === 3) ||
-            (Auth::User()->role === 4),
+            (Auth::user()->role === 3) ||
+            (Auth::user()->role === 4),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -217,15 +217,15 @@ class DocumentController extends Controller
                 );
         }
 
-        // Auditee may delete documents from assigned controls
-        // when control has not been made
+        // Auditee may delete documents from assigned measures
+        // when measure has not been made
         abort_if(
-            (Auth::User()->role === 5) &&
+            (Auth::user()->role === 5) &&
             ! DB::table('control_user')
-                ->where('user_id', Auth::User()->id)
-                ->where('control_id', $document->control_id)
-                ->leftjoin('controls', 'controls.id', '=', 'control_user.control_id')
-                ->whereNull('controls.realisation_date')
+                ->where('user_id', Auth::user()->id)
+                ->where('measure_id', $document->measure_id)
+                ->leftjoin('measures', 'measures.id', '=', 'control_user.measure_id')
+                ->whereNull('measures.realisation_date')
                 ->exists(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
@@ -245,7 +245,7 @@ class DocumentController extends Controller
     {
         // Only for administrator
         abort_if(
-            (Auth::User()->role !== 1),
+            (Auth::user()->role !== 1),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -264,7 +264,7 @@ class DocumentController extends Controller
     public function check()
     {
         abort_if(
-            ! Auth::User()->isAdmin(),
+            ! Auth::user()->isAdmin(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -298,7 +298,7 @@ class DocumentController extends Controller
     {
         // Only for administrator
         abort_if(
-            (Auth::User()->role !== 1),
+            (Auth::user()->role !== 1),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -323,25 +323,25 @@ class DocumentController extends Controller
         } elseif (($action === 'test') && ($duration > 0)) {
             $dateLimit = Carbon::now()->subMonths($duration)->toDateString();
 
-            $result = Control::cleanup($dateLimit, true);
+            $result = Measure::cleanup($dateLimit, true);
 
             $messages = Collect(
                 [
                     "{$result['logCount']} log(s) will be deleted.",
                     "{$result['documentCount']} document(s) will be deleted.",
-                    "{$result['controlCount']} control(s) will be deleted.",
+                    "{$result['measureCount']} measure(s) will be deleted.",
                 ]
             );
         } elseif (($action === 'delete') && ($duration > 0)) {
             $dateLimit = Carbon::now()->subMonths($duration)->toDateString();
 
-            $result = Control::cleanup($dateLimit, false);
+            $result = Measure::cleanup($dateLimit, false);
 
             $messages = Collect(
                 [
                     "{$result['logCount']} log(s) deleted.",
                     "{$result['documentCount']} document(s) deleted.",
-                    "{$result['controlCount']} control(s) deleted.",
+                    "{$result['measureCount']} measure(s) deleted.",
                 ]
             );
         } else {

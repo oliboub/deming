@@ -137,7 +137,7 @@
 			@if ((Auth::User()->role==1)||($user->id==Auth::User()->id))
 		    <form>
 		    	<button class="button primary" onclick='this.form.action="/users/{{ $user->id }}/edit"'>
-		            <span class="mif-wrench"></span>
+		            <span class="mif-pencil"></span>
 		            &nbsp;
 		    		{{ trans('common.edit') }}
 		    	</button>

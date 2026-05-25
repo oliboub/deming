@@ -40,7 +40,7 @@ Route::namespace('App\\Http\\Controllers')->middleware('auth')->group(function (
     Route::get('/about', 'HomeController@test');
     Route::view('/about', 'about');
 
-    /* Measures */
+    /* Measures (security measures → MeasureController) */
     Route::get('/alice/index', 'MeasureController@index');
     Route::get('/alice/create', 'MeasureController@create');
     Route::post('/alice/store', 'MeasureController@store');
@@ -55,7 +55,7 @@ Route::namespace('App\\Http\\Controllers')->middleware('auth')->group(function (
     Route::post('/alice/import', 'MeasureImportController@import');
     Route::get('/alice/download', 'MeasureImportController@download');
 
-    /* Controls */
+    /* Controls (audit instances → ControlController) */
     Route::get('/bob/index', 'ControlController@index');
     Route::get('/bob/create', 'ControlController@create');
     Route::post('/bob/store', 'ControlController@store');

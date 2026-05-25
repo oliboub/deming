@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Control;
+use App\Models\Measure;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -75,7 +75,7 @@ class ControlsExport implements FromQuery, WithMapping, WithHeadings, WithStyles
     {
         return [
             [
-                $control->measures()->implode('clause', ', '),
+                $control->controls()->implode('clause', ', '),
                 $control->name,
                 $control->scope,
                 $control->objective,
@@ -105,6 +105,6 @@ class ControlsExport implements FromQuery, WithMapping, WithHeadings, WithStyles
 
     public function query(): Builder
     {
-        return Control::orderBy('realisation_date');
+        return Measure::orderBy('realisation_date');
     }
 }

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Modèle Exception (issue #590 – gestion des exceptions)
  *
  * @property int         $id
- * @property int|null    $measure_id
+ * @property int|null    $control_id
  * @property string      $name
  * @property string|null $description
  * @property string|null $justification
@@ -47,7 +47,7 @@ class Exception extends Model
 
     // ── Fillable ──────────────────────────────────────────────────────────────
     protected $fillable = [
-        'measure_id',
+        'control_id',
         'name',
         'description',
         'justification',
@@ -74,7 +74,7 @@ class Exception extends Model
     // ── Relations ─────────────────────────────────────────────────────────────
     public function measure(): BelongsTo
     {
-        return $this->belongsTo(Measure::class);
+        return $this->belongsTo(Control::class, 'control_id');
     }
 
     public function createdBy(): BelongsTo

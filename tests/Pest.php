@@ -5,6 +5,9 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 
 pest()->extend(Tests\TestCase::class)
     ->use(RefreshDatabase::class)
+    ->beforeEach(function () {
+        \App\Models\RiskScoringConfig::clearCache();
+    })
     ->in('Feature');
 
 // Disable rate limiting for all feature tests

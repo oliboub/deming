@@ -14,7 +14,7 @@ class AuditLogsController extends Controller
     {
         // Only for admin and users
         abort_if(
-            (Auth::User()->role !== 1) && (Auth::User()->role !== 2),
+            (Auth::user()->role !== 1) && (Auth::user()->role !== 2),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -41,7 +41,7 @@ class AuditLogsController extends Controller
     {
         // Only for admin and users
         abort_if(
-            (Auth::User()->role !== 1) && (Auth::User()->role !== 2),
+            (Auth::user()->role !== 1) && (Auth::user()->role !== 2),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -59,7 +59,7 @@ class AuditLogsController extends Controller
     {
         // Only for admin and users
         abort_if(
-            (Auth::User()->role !== 1) && (Auth::User()->role !== 2),
+            (Auth::user()->role !== 1) && (Auth::user()->role !== 2),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );

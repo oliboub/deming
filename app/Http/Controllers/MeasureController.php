@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\MeasuresExport;
+use App\Exports\ControlsExport;
+use App\Models\Measure;
 use App\Models\Control;
 use App\Models\Domain;
-use App\Models\Measure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -13,21 +13,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
-use Mercator\Core\Models\Task;
 
 class MeasureController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * Request $request
-     *
-     * @return View
+     * Display a listing of controls (security measures).
      */
     public function index(Request $request): View
     {
-        // Not for Auditor, API and auditee
-        abort_if(Auth::User()->isAPI(),
+        // Not for API
+        abort_if(Auth::user()->isAPI(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -44,114 +39,104 @@ class MeasureController extends Controller
             $domain = $request->session()->get('domain');
         }
 
-        $measures = DB::table('measures')
+        $controls = DB::table('controls')
             ->select(
                 [
-                    'measures.id',
-                    'measures.domain_id',
-                    'measures.clause',
-                    'measures.name',
+                    'controls.id',
+                    'controls.domain_id',
+                    'controls.clause',
+                    'controls.name',
                     'domains.title',
                 ]
             )
-            ->join('domains', 'domains.id', '=', 'measures.domain_id');
+            ->join('domains', 'domains.id', '=', 'controls.domain_id');
 
-        // Filtrer les mesures uniquement si l'utilisateur est Auditee
+        // Filter controls for Auditee: only show controls linked to assigned measures
         if (Auth::user()->isAuditee()) {
             $userId = Auth::id();
 
-            $measures->whereExists(function($query) use ($userId) {
+            $controls->whereExists(function ($query) use ($userId) {
                 $query->select(DB::raw(1))
                     ->from('control_measure')
-                    ->whereColumn('control_measure.measure_id', 'measures.id')
-                    ->where(function($subQuery) use ($userId) {
-                        // Mesures liées à des contrôles assignés directement
-                        $subQuery->whereExists(function($q) use ($userId) {
+                    ->whereColumn('control_measure.control_id', 'controls.id')
+                    ->where(function ($subQuery) use ($userId) {
+                        $subQuery->whereExists(function ($q) use ($userId) {
                             $q->select(DB::raw(1))
                                 ->from('control_user')
-                                ->whereColumn('control_user.control_id', 'control_measure.control_id')
+                                ->whereColumn('control_user.measure_id', 'control_measure.measure_id')
                                 ->where('control_user.user_id', $userId);
                         })
-                            // OU mesures liées à des contrôles assignés via un groupe
-                            ->orWhereExists(function($q) use ($userId) {
+                            ->orWhereExists(function ($q) use ($userId) {
                                 $q->select(DB::raw(1))
                                     ->from('control_user_group')
                                     ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                                    ->whereColumn('control_user_group.control_id', 'control_measure.control_id')
+                                    ->whereColumn('control_user_group.measure_id', 'control_measure.measure_id')
                                     ->where('user_user_group.user_id', $userId);
                             });
                     });
             });
 
-            // Compter uniquement les contrôles assignés à l'utilisateur
-            $measures->addSelect(
-                ['control_count' => DB::table('controls')
-                    ->selectRaw('count(*) as controls_count')
-                    ->leftjoin('control_measure', 'control_measure.measure_id', 'measures.id')
-                    ->whereColumn('control_measure.control_id', 'controls.id')
-                    ->whereIn('controls.status', [0,1])
-                    ->where(function($q) use ($userId) {
-                        $q->whereExists(function($subQ) use ($userId) {
+            $controls->addSelect(
+                ['control_count' => DB::table('measures')
+                    ->selectRaw('count(*) as measures_count')
+                    ->leftjoin('control_measure', 'control_measure.control_id', 'controls.id')
+                    ->whereColumn('control_measure.measure_id', 'measures.id')
+                    ->whereIn('measures.status', [0, 1])
+                    ->where(function ($q) use ($userId) {
+                        $q->whereExists(function ($subQ) use ($userId) {
                             $subQ->select(DB::raw(1))
                                 ->from('control_user')
-                                ->whereColumn('control_user.control_id', 'controls.id')
+                                ->whereColumn('control_user.measure_id', 'measures.id')
                                 ->where('control_user.user_id', $userId);
                         })
-                            ->orWhereExists(function($subQ) use ($userId) {
+                            ->orWhereExists(function ($subQ) use ($userId) {
                                 $subQ->select(DB::raw(1))
                                     ->from('control_user_group')
                                     ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                                    ->whereColumn('control_user_group.control_id', 'controls.id')
+                                    ->whereColumn('control_user_group.measure_id', 'measures.id')
                                     ->where('user_user_group.user_id', $userId);
                             });
                     }),
                 ]
             );
         } else {
-            // Pour les autres rôles, compter tous les contrôles
-            $measures->addSelect(
-                ['control_count' => DB::table('controls')
-                    ->selectRaw('count(*) as controls_count')
-                    ->leftjoin('control_measure', 'control_measure.measure_id', 'measures.id')
-                    ->whereColumn('control_measure.control_id', 'controls.id')
-                    ->whereIn('controls.status', [0,1]),
+            $controls->addSelect(
+                ['control_count' => DB::table('measures')
+                    ->selectRaw('count(*) as measures_count')
+                    ->leftjoin('control_measure', 'control_measure.control_id', 'controls.id')
+                    ->whereColumn('control_measure.measure_id', 'measures.id')
+                    ->whereIn('measures.status', [0, 1]),
                 ]
             );
         }
 
         if ($domain !== null) {
-            $measures->where('measures.domain_id', $domain);
+            $controls->where('controls.domain_id', $domain);
             $request->session()->put('domain', $domain);
         }
 
-        $measures = $measures->orderBy('clause')->get();
+        $controls = $controls->orderBy('clause')->get();
 
-        // return
         return view('measures.index')
-            ->with('measures', $measures)
+            ->with('measures', $controls)
             ->with('domains', $domains);
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return View
+     * Show the form for creating a new control (security measure).
      */
     public function create()
     {
-        // Only Admin and User can create a measure
-        abort_if(!Auth::User()->isAdmin() && !Auth::User()->isUser(),
+        abort_if(!Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        // get the list of domains
         $domains = Domain::All();
 
-        // get all attributes
         $values = [];
         $attributes = DB::table('attributes')->select('values')
-            ->union(DB::table('measures')
+            ->union(DB::table('controls')
                 ->select(DB::raw('attributes as value')))
             ->get();
         foreach ($attributes as $key) {
@@ -164,24 +149,17 @@ class MeasureController extends Controller
         sort($values);
         $values = array_unique($values);
 
-        // for clone action
         $measure = null;
 
-        // store it in the response
         return view('measures.create', compact('measure', 'values', 'domains'));
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * Store a newly created control (security measure).
      */
     public function store(Request $request)
     {
-        // Only Admin and User can create a measure
-        abort_if(!Auth::User()->isAdmin() && !Auth::User()->isUser(),
+        abort_if(!Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -190,107 +168,87 @@ class MeasureController extends Controller
             $request,
             [
                 'domain_id' => 'required',
-                'clause' => 'required|min:3|max:30|unique:measures,clause',
-                'name' => 'required|min:5|max:255',
+                'clause'    => 'required|min:3|max:30|unique:controls,clause',
+                'name'      => 'required|min:5|max:255',
                 'objective' => 'required',
             ]
         );
 
-        // OLD CODE
-        // $attributes = $request->get('attributes');
-        // $request['attributes'] = $attributes !== null ? implode(' ', $attributes) : null;
-        // $measure = Measure::query()->create($request->all());
+        $control = new Control();
+        $control->domain_id   = request('domain_id');
+        $control->clause      = request('clause');
+        $control->name        = request('name');
+        $control->attributes  = request('attributes') !== null ? implode(' ', request('attributes')) : null;
+        $control->objective   = request('objective');
+        $control->input       = request('input');
+        $control->model       = request('model');
+        $control->indicator   = request('indicator');
+        $control->action_plan = request('action_plan');
+        $control->save();
 
-        $measure = new Measure();
-        $measure->domain_id = request('domain_id');
-        $measure->clause = request('clause');
-        $measure->name = request('name');
-        $measure->attributes = request('attributes') !== null ? implode(' ', request('attributes')) : null;
-        $measure->objective = request('objective');
-        $measure->input = request('input');
-        $measure->model = request('model');
-        $measure->indicator = request('indicator');
-        $measure->action_plan = request('action_plan');
-        $measure->save();
-
-        $request->session()->put('domain', $measure->domain_id);
+        $request->session()->put('domain', $control->domain_id);
 
         return redirect('/alice/index');
     }
 
     /**
-     * Display a measure
-     *
-     * @param  int $id
-     *
-     * @return View
+     * Display a control (security measure).
      */
     public function show(int $id)
     {
-        // Not for API
-        abort_if(Auth::User()->isAPI(),
+        abort_if(Auth::user()->isAPI(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        // user must have one control assigned
+        // Auditee: must have an assigned measure on this control
         abort_if(
-            (Auth::User()->isAuditee()) &&
-            ! DB::table('controls')
-                ->where('measure_id', $id)
-                ->join('control_measure', 'control_measure.control_id', '=', 'controls.id')
-                ->join('control_user', 'control_user.control_id', '=', 'controls.id')
-                ->where('control_user.user_id', Auth::User()->id)
+            (Auth::user()->isAuditee()) &&
+            ! DB::table('measures')
+                ->join('control_measure', 'control_measure.measure_id', '=', 'measures.id')
+                ->join('control_user', 'control_user.measure_id', '=', 'measures.id')
+                ->where('control_measure.control_id', $id)
+                ->where('control_user.user_id', Auth::user()->id)
                 ->exists(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        $measure = Measure::find($id);
+        $control = Control::find($id);
 
-        // not found
-        abort_if($measure === null, Response::HTTP_NOT_FOUND, '404 Not Found');
+        abort_if($control === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
-        // Get associate controls
-        $controls = DB::table('controls')
-            ->select('controls.id', 'controls.name', 'controls.scope', 'score', 'controls.status', 'realisation_date', 'plan_date')
-            ->join('control_measure', 'control_measure.control_id', '=', 'controls.id')
-            ->leftjoin('actions', 'actions.control_id', '=', 'controls.id')
-            ->where('control_measure.measure_id', $id)
+        $measures = DB::table('measures')
+            ->select('measures.id', 'measures.name', 'measures.scope', 'score', 'measures.status', 'realisation_date', 'plan_date')
+            ->join('control_measure', 'control_measure.measure_id', '=', 'measures.id')
+            ->leftjoin('actions', 'actions.measure_id', '=', 'measures.id')
+            ->where('control_measure.control_id', $id)
             ->get();
 
         return view('measures.show')
-            ->with('measure', $measure)
-            ->with('controls', $controls);
+            ->with('measure', $control)
+            ->with('controls', $measures);
     }
 
     /**
-     * Clone measure.
-     *
-     * @param  int $id
-     *
-     * @return View
+     * Show the form for editing a control (security measure).
      */
     public function edit(int $id)
     {
-        // Only Admin and User can edit a measure
-        abort_if(!Auth::User()->isAdmin() && !Auth::User()->isUser(),
+        abort_if(!Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        $measure = Measure::find($id);
+        $control = Control::find($id);
 
-        // not found
-        abort_if($measure === null, Response::HTTP_NOT_FOUND, '404 Not Found');
+        abort_if($control === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
-        // get the list of domains
         $domains = Domain::All();
 
-        // get all attributes
         $values = [];
         $attributes = DB::table('attributes')->select('values')
-            ->union(DB::table('measures')
+            ->union(DB::table('controls')
                 ->select(DB::raw('attributes as value')))
             ->get();
         foreach ($attributes as $key) {
@@ -303,34 +261,30 @@ class MeasureController extends Controller
         sort($values);
         $values = array_unique($values);
 
+        $measure = $control;
+
         return view('measures.edit', compact('measure', 'values', 'domains'));
     }
 
     /**
-     * Clone measure.
-     *
-     * @param  int $id
-     *
-     * @return View
+     * Clone a control (security measure).
      */
     public function clone(int $id)
     {
-        // Only Admin and User can clone a measure
-        abort_if(!Auth::User()->isAdmin() && !Auth::User()->isUser(),
+        abort_if(!Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        $measure = Measure::find($id);
+        $control = Control::find($id);
 
-        abort_if($measure === null, Response::HTTP_NOT_FOUND, '404 Not Found');
+        abort_if($control === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
         $domains = Domain::all();
 
-        // Récupération de toutes les valeurs d'attributs disponibles
         $values = [];
         $attributes = DB::table('attributes')->select('values')
-            ->union(DB::table('measures')
+            ->union(DB::table('controls')
                 ->select(DB::raw('attributes as value')))
             ->get();
 
@@ -345,11 +299,12 @@ class MeasureController extends Controller
         $values = array_unique($values);
         sort($values);
 
-        // Extraire les attributs sélectionnés de la mesure existante
         $selectedAttributes = array_filter(
-            explode(' ', $measure->attributes ?? ''),
+            explode(' ', $control->attributes ?? ''),
             fn ($val) => strlen($val) > 0
         );
+
+        $measure = $control;
 
         return view(
             'measures.create',
@@ -358,16 +313,11 @@ class MeasureController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * Update a control (security measure).
      */
     public function update(Request $request)
     {
-        // Only Admin and User can update a measure
-        abort_if(!Auth::User()->isAdmin() && !Auth::User()->isUser(),
+        abort_if(!Auth::user()->isAdmin() && !Auth::user()->isUser(),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -376,109 +326,89 @@ class MeasureController extends Controller
             $request,
             [
                 'domain_id' => 'required',
-                'clause' => 'required|min:3|max:30',
-                'name' => 'required|min:5',
+                'clause'    => 'required|min:3|max:30',
+                'name'      => 'required|min:5',
                 'objective' => 'required',
             ]
         );
 
-        // find measure
-        $measure = Measure::query()->find($request->id);
+        $control = Control::query()->find($request->id);
 
-        // not found
-        abort_if($measure === null, Response::HTTP_NOT_FOUND, '404 Not Found');
+        abort_if($control === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
-        // update measure
-        $measure->domain_id = request('domain_id');
-        $measure->clause = request('clause');
-        $measure->name = request('name');
-        $measure->attributes = request('attributes') !== null ? implode(' ', request('attributes')) : null;
-        $measure->objective = request('objective');
-        $measure->input = request('input');
-        $measure->model = request('model');
-        $measure->indicator = request('indicator');
-        $measure->action_plan = request('action_plan');
-        $measure->update();
+        $control->domain_id   = request('domain_id');
+        $control->clause      = request('clause');
+        $control->name        = request('name');
+        $control->attributes  = request('attributes') !== null ? implode(' ', request('attributes')) : null;
+        $control->objective   = request('objective');
+        $control->input       = request('input');
+        $control->model       = request('model');
+        $control->indicator   = request('indicator');
+        $control->action_plan = request('action_plan');
+        $control->update();
 
-        // return to view measure
-        return redirect('/alice/show/'.$measure->id);
+        return redirect('/alice/show/' . $control->id);
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * Delete a control (security measure).
      */
     public function destroy(Request $request)
     {
-        // Not for Auditor, API and auditee
         abort_if(
-            (Auth::User()->role === 3) ||
-            (Auth::User()->role === 4) ||
-            (Auth::User()->role === 5),
+            (Auth::user()->role === 3) ||
+            (Auth::user()->role === 4) ||
+            (Auth::user()->role === 5),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        // Check measure exists
         abort_if(
-            ! DB::table('measures')->where('id', $request->id)->exists(),
+            ! DB::table('controls')->where('id', $request->id)->exists(),
             Response::HTTP_NOT_FOUND,
             '404 Not Found'
         );
 
-        // Has controls ?
-        if (DB::table('measures')
+        // Has associated measures?
+        if (DB::table('controls')
             ->where('id', $request->id)
-            ->join('control_measure', 'measures.id', 'control_measure.measure_id')
+            ->join('control_measure', 'controls.id', 'control_measure.control_id')
             ->exists()) {
             return back()
-                ->withErrors(['msg' => 'There are controls associated with this measure !'])
+                ->withErrors(['msg' => 'There are measures associated with this control !'])
                 ->withInput();
         }
 
-        // Destroy it
-        Measure::destroy($request->id);
+        Control::destroy($request->id);
 
         return redirect('/alice/index');
     }
 
     /**
-     * Plan a measure.
-     *
-     * @param  \Illuminate\Http\Request $request
-     *
-     * @return View
+     * Plan a new measure on a control.
      */
     public function plan(Request $request): View
     {
-        // Not for Auditor, API and auditee
         abort_if(
-            (Auth::User()->role === 3) ||
-            (Auth::User()->role === 4) ||
-            (Auth::User()->role === 5),
+            (Auth::user()->role === 3) ||
+            (Auth::user()->role === 4) ||
+            (Auth::user()->role === 5),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        $measure = Measure::find($request->id);
+        $control = Control::find($request->id);
 
-        // Control not found
-        abort_if($measure === null, Response::HTTP_NOT_FOUND, '404 Not Found');
+        abort_if($control === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
-        // get all clauses
-        $all_measures = DB::table('measures')
+        $all_controls = DB::table('controls')
             ->select('id', 'clause', 'name')
             ->orderBy('id')
             ->get();
 
-        // get all measures for this measure
-        $measures = [$request->id];
+        $controls = [$request->id];
 
-        // get all active scopes
-        $scopes = Control::query()
+        $scopes = Measure::query()
             ->whereNotNull('scope')
             ->where('scope', '!=', '')
             ->whereIn('status', [0, 1])
@@ -487,19 +417,16 @@ class MeasureController extends Controller
             ->pluck('scope')
             ->toArray();
 
-        // get users
         $users = DB::table('users')
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
 
-        // get all groups
         $groups = DB::table('user_groups')
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
 
-        // Owners list
         $owners = collect();
         foreach ($users as $user) {
             $owners->put('USR_' . $user->id, $user->name);
@@ -508,7 +435,6 @@ class MeasureController extends Controller
             $owners->put('GRP_' . $group->id, $group->name);
         }
 
-        // get all attributes
         $values = [];
         $attributes = DB::table('attributes')
             ->select('values')
@@ -526,30 +452,25 @@ class MeasureController extends Controller
         return view(
             'measures.plan',
             compact(
-                'measure',
-                'all_measures',
-                'measures',
+                'control',
+                'all_controls',
+                'controls',
                 'scopes',
                 'owners',
                 'values'
             )
-        );
+        )->with('measure', $control);
     }
 
     /**
-     * Activate a measure
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * Activate a control by creating a new measure instance.
      */
-    public function activate(Request $request) : RedirectResponse
+    public function activate(Request $request): RedirectResponse
     {
-        // Not for Auditor, API and auditee
         abort_if(
-            (Auth::User()->role === 3) ||
-            (Auth::User()->role === 4) ||
-            (Auth::User()->role === 5),
+            (Auth::user()->role === 3) ||
+            (Auth::user()->role === 4) ||
+            (Auth::user()->role === 5),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
@@ -557,107 +478,88 @@ class MeasureController extends Controller
         $this->validate(
             $request,
             [
-                'plan_date' => 'required',
+                'plan_date'   => 'required',
                 'periodicity' => 'required|integer|in:-1,0,1,3,6,12',
-                'measures' => 'array|min:1',
+                'controls'    => 'array|min:1',
             ]
         );
 
-        // create a new control
-        $control = new Control();
-        $control->name = $request->get('name');
-        $control->scope = $request->get('scope');
-        $control->attributes = request('attributes') !== null ? implode(' ', request('attributes')) : null;
-        $control->objective = $request->get('objective');
-        $control->input = $request->get('input');
-        $control->model = $request->get('model');
-        $control->indicator = $request->get('indicator');
-        $control->action_plan = $request->get('action_plan');
-        $control->periodicity = $request->get('periodicity');
-        $control->plan_date = $request->get('plan_date');
+        $measure = new Measure();
+        $measure->name        = $request->get('name');
+        $measure->scope       = $request->get('scope');
+        $measure->attributes  = request('attributes') !== null ? implode(' ', request('attributes')) : null;
+        $measure->objective   = $request->get('objective');
+        $measure->input       = $request->get('input');
+        $measure->model       = $request->get('model');
+        $measure->indicator   = $request->get('indicator');
+        $measure->action_plan = $request->get('action_plan');
+        $measure->periodicity = $request->get('periodicity');
+        $measure->plan_date   = $request->get('plan_date');
+        $measure->save();
 
-        // Save it
-        $control->save();
-
-        // Sync users
         $users = collect();
         foreach ($request->input('owners', []) as $owner) {
             if (str_starts_with($owner, 'USR_')) {
                 $users->push(intval(substr($owner, 4)));
             }
         }
-        $control->users()->sync($users);
+        $measure->users()->sync($users);
 
-        // Sync groups
         $groups = collect();
         foreach ($request->input('owners', []) as $owner) {
             if (str_starts_with($owner, 'GRP_')) {
                 $groups->push(intval(substr($owner, 4)));
             }
         }
-        $control->groups()->sync($groups);
+        $measure->groups()->sync($groups);
 
-        // Sync measures
-        $control->measures()->sync($request->input('measures', []));
+        $measure->controls()->sync($request->input('controls', []));
 
-        // return to the list of measures
         return redirect('/alice/index');
     }
 
     /**
-     * Disable a measure
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * Disable a control (delete its active measure).
      */
     public function disable(Request $request)
     {
-        // Not for Auditor, API and auditee
         abort_if(
-            (Auth::User()->role === 3) ||
-            (Auth::User()->role === 4) ||
-            (Auth::User()->role === 5),
+            (Auth::user()->role === 3) ||
+            (Auth::user()->role === 4) ||
+            (Auth::user()->role === 5),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        $control_id = DB::table('controls')
+        $measure_id = DB::table('measures')
             ->select('id')
-            ->where('measure_id', '=', $request->id)
-            ->where('status', [0,1])
+            ->join('control_measure', 'control_measure.measure_id', '=', 'measures.id')
+            ->where('control_measure.control_id', $request->id)
+            ->whereIn('measures.status', [0, 1])
             ->first()
-            ->id;
+            ?->id;
 
-        if ($control_id !== null) {
-            // break link
-            Control::where('next_id', $control_id)
-                ->update(['next_id' => null]);
-            // delete control
-            Control::where('id', $control_id)
-                ->delete();
+        if ($measure_id !== null) {
+            Measure::where('next_id', $measure_id)->update(['next_id' => null]);
+            Measure::where('id', $measure_id)->delete();
         }
 
-        // return to the list of measures
         return redirect('/alice/index');
     }
 
     /**
-     * Export all Measure in xlsx
-     *
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * Export all controls in xlsx.
      */
     public function export()
     {
-        // Not for Auditor, API and auditee
         abort_if(
-            (Auth::User()->role === 3) ||
-            (Auth::User()->role === 4) ||
-            (Auth::User()->role === 5),
+            (Auth::user()->role === 3) ||
+            (Auth::user()->role === 4) ||
+            (Auth::user()->role === 5),
             Response::HTTP_FORBIDDEN,
             '403 Forbidden'
         );
 
-        return Excel::download(new MeasuresExport(), trans('cruds.measure.title') . '-' . now()->format('Y-m-d Hi') . '.xlsx');
+        return Excel::download(new ControlsExport(), trans('cruds.control.title') . '-' . now()->format('Y-m-d Hi') . '.xlsx');
     }
 }

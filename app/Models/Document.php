@@ -15,8 +15,8 @@ class Document extends Model
     use HasFactory;
 
 
-    public function control()
+    public function measure()
     {
-        return $this->belongsTo(Control::class, 'control_id');
+        return $this->belongsTo(Measure::class, 'measure_id');
     }
 }

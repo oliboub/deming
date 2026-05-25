@@ -1,5 +1,7 @@
 <?php
 
+uses()->group('api');
+
 use App\Models\Document;
 use App\Models\User;
 use Laravel\Passport\Passport;

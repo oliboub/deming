@@ -27,9 +27,9 @@
 	    	</div>
     		<div class="cell-lg-4 cell-md-5">
                 @foreach($control->measures as $measure)
-                    <a href="/alice/show/{{ $measure->id }}">{{ $measure->clause }}</a>
+                    <a href="/alice/show/{{ $measure->id }}">{{ $measure->clause }}</a> - {{ $measure->name }}
                     @if(!$loop->last)
-                    ,
+                    <br>
                     @endif
                 @endforeach
             </div>

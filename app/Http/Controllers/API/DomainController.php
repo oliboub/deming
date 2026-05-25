@@ -12,7 +12,7 @@ class DomainController extends Controller
 {
     public function index()
     {
-        abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $domains = Domain::all();
 
@@ -21,7 +21,7 @@ class DomainController extends Controller
 
     public function store(Request $request)
     {
-        abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $domain = Domain::create($request->all());
 
@@ -30,14 +30,14 @@ class DomainController extends Controller
 
     public function show(Domain $domain)
     {
-        abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         return response()->json($domain);
     }
 
     public function update(Request $request, Domain $domain)
     {
-        abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $domain->update($request->all());
 
@@ -46,7 +46,7 @@ class DomainController extends Controller
 
     public function destroy(Domain $domain)
     {
-        abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $domain->delete();
 

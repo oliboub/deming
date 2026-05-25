@@ -41,6 +41,9 @@ theme:
 extra_css:
   - css/overrides.css
 
+extra_javascript:
+  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+
 extra:
   generator: false
 
@@ -66,7 +69,11 @@ markdown_extensions:
       permalink: true
       toc_depth: 3
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
   - index.md
@@ -81,6 +88,6 @@ nav:
   - exceptions.md
   - config.md
   - api.md
+  - model.md
   - annexe.md
   - references.md
-

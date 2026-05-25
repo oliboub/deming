@@ -12,7 +12,7 @@ class AuditLogController extends Controller
 {
     public function index()
     {
-        abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $auditLogs = AuditLog::all();
 
@@ -26,7 +26,7 @@ class AuditLogController extends Controller
 
     public function show(AuditLog $log)
     {
-        abort_if(!Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         return response()->json($log);
     }

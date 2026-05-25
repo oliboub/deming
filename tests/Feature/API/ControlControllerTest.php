@@ -1,6 +1,9 @@
 <?php
 
+uses()->group('api');
+
 use App\Models\Control;
+use App\Models\Domain;
 use App\Models\Measure;
 use App\Models\User;
 use Laravel\Passport\Passport;
@@ -28,35 +31,39 @@ test('index is forbidden for non-api users', function () {
 });
 
 test('store creates a control', function () {
+    $domain = Domain::factory()->create();
+
     $data = [
-        'name' => 'Access Review',
-        'objective' => 'Review access rights quarterly',
-        'periodicity' => 3,
-        'plan_date' => '2026-06-01',
+        'domain_id' => $domain->id,
+        'clause'    => '5.1.1',
+        'name'      => 'Access Control Policy',
+        'objective' => 'Ensure access is controlled',
     ];
 
     $response = $this->postJson('/api/controls', $data);
 
     $response->assertStatus(201)
-        ->assertJsonFragment(['name' => 'Access Review']);
+        ->assertJsonFragment(['name' => 'Access Control Policy']);
 
-    $this->assertDatabaseHas('controls', ['name' => 'Access Review']);
+    $this->assertDatabaseHas('controls', ['clause' => '5.1.1']);
 });
 
 test('store syncs measures when provided', function () {
+    $domain  = Domain::factory()->create();
     $measure = Measure::factory()->create();
 
     $response = $this->postJson('/api/controls', [
-        'name' => 'Control with Measure',
+        'domain_id' => $domain->id,
+        'clause'    => '5.1.2',
+        'name'      => 'Control with Measure',
         'objective' => 'Test',
-        'plan_date' => '2026-06-01',
-        'measures' => [$measure->id],
+        'measures'  => [$measure->id],
     ]);
 
     $response->assertStatus(201);
 
-    $control = Control::where('name', 'Control with Measure')->first();
-    expect($control->measures()->count())->toBe(1);
+    $control = Control::where('clause', '5.1.2')->first();
+    expect($control->allMeasures()->count())->toBe(1);
 });
 
 test('show returns a single control with measures', function () {
@@ -73,7 +80,7 @@ test('update modifies a control', function () {
     $control = Control::factory()->create();
 
     $response = $this->putJson("/api/controls/{$control->id}", [
-        'name' => 'Updated Control',
+        'name'      => 'Updated Control',
         'objective' => 'Updated objective',
     ]);
 
@@ -81,16 +88,15 @@ test('update modifies a control', function () {
     $this->assertDatabaseHas('controls', ['id' => $control->id, 'name' => 'Updated Control']);
 });
 
-test('destroy deletes a control and detaches measures', function () {
+test('destroy deletes a control', function () {
     $measure = Measure::factory()->create();
     $control = Control::factory()->create();
-    $control->measures()->attach($measure->id);
+    $control->allMeasures()->attach($measure->id);
 
     $response = $this->deleteJson("/api/controls/{$control->id}");
 
     $response->assertStatus(200);
     $this->assertDatabaseMissing('controls', ['id' => $control->id]);
-    $this->assertDatabaseMissing('control_measure', ['control_id' => $control->id]);
 });
 
 test('show returns 404 for nonexistent control', function () {

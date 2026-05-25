@@ -18,7 +18,7 @@ class GlobalSearchController extends Controller
     public function search(Request $request)
     {
         // Not for API
-        abort_if(Auth::User()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Auth::user()->isAPI(), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $term = $request->input('search');
         if ($term === null) {
@@ -28,31 +28,29 @@ class GlobalSearchController extends Controller
         $searchableData = [];
 
         foreach ($this->models as $model) {
-            // Auditee only search on controls
-            if (Auth::User()->isAuditee() && $model !== \App\Models\Control::class) {
+            // Auditee only search on measures (audit instances)
+            if (Auth::user()->isAuditee() && $model !== \App\Models\Measure::class) {
                 continue;
             }
 
             $query = $model::query();
             $fields = $model::$searchable;
 
-            // Auditee only search on assigned controls
-            if (Auth::User()->isAuditee()) {
+            // Auditee only search on assigned measures (audit instances)
+            if (Auth::user()->isAuditee()) {
                 $userId = Auth::id();
                 $query = $query->where(function($q) use ($userId) {
-                    // Contrôles assignés directement à l'utilisateur
                     $q->whereExists(function($subQ) use ($userId) {
                         $subQ->selectRaw(1)
                             ->from('control_user')
-                            ->whereColumn('control_user.control_id', 'controls.id')
+                            ->whereColumn('control_user.measure_id', 'measures.id')
                             ->where('control_user.user_id', $userId);
                     })
-                        // OU contrôles assignés via un groupe d'utilisateurs
                         ->orWhereExists(function($subQ) use ($userId) {
                             $subQ->selectRaw(1)
                                 ->from('control_user_group')
                                 ->join('user_user_group', 'user_user_group.user_group_id', '=', 'control_user_group.user_group_id')
-                                ->whereColumn('control_user_group.control_id', 'controls.id')
+                                ->whereColumn('control_user_group.measure_id', 'measures.id')
                                 ->where('user_user_group.user_id', $userId);
                         });
                 });

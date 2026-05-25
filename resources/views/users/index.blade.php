@@ -79,7 +79,7 @@
     				@if (Auth::User()->role==1)
                     <td>
                         <a class="button info small" href='/users/{{ $user->id }}/edit'>
-        		            <span class="mif-wrench"></span>
+        		            <span class="mif-pencil"></span>
         		            &nbsp;
         		    		{{ trans('common.edit') }}
                         </a>

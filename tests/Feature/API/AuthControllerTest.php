@@ -1,5 +1,7 @@
 <?php
 
+uses()->group('api');
+
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Laravel\Passport\Passport;

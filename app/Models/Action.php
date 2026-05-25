@@ -55,9 +55,9 @@ class Action extends Model
         return $this->belongsToMany(User::class, 'action_user', 'action_id')->orderBy('name');
     }
 
-    public function measures()
+    public function controls()
     {
-        return $this->belongsToMany(Measure::class, 'action_measure', 'action_id');
+        return $this->belongsToMany(Control::class, 'action_measure', 'action_id', 'control_id');
     }
 
     // Computer progress history of an action

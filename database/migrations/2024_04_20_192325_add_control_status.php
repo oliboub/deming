@@ -20,9 +20,8 @@ return new class extends Migration
         // O - Todo => relisation date null
         // 1 - Proposed
         // 2 - Done => relisation date not null
-        Control::whereNotNull('realisation_date')->update(['status' => 2]);
-        Control::whereNull('realisation_date')->update(['status' => 0]);
-    }
+        DB::table('controls')->whereNotNull('realisation_date')->update(['status' => 2]);
+        DB::table('controls')->whereNull('realisation_date')->update(['status' => 0]);    }
 
     /**
      * Reverse the migrations.

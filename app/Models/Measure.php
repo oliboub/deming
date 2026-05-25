@@ -5,9 +5,12 @@ namespace App\Models;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class Measure extends Model
 {
@@ -15,11 +18,13 @@ class Measure extends Model
 
     public static $searchable = [
         'name',
-        'clause',
         'objective',
+        'observations',
         'input',
         'attributes',
         'model',
+        'action_plan',
+        'plan_date',
     ];
 
     protected $dates = [
@@ -29,55 +34,180 @@ class Measure extends Model
     ];
 
     protected $fillable = [
-        'domain_id',
-        'clause',
         'name',
         'objective',
-        'attributes',
+        'observations',
         'input',
+        'score',
+        'attributes',
         'model',
-        'indicator',
         'action_plan',
+        'realisation_date',
+        'plan_date',
+        'periodicity',
     ];
 
-    // Return the domain associated to this measure
-    public function domain(): BelongsTo
-    {
-        return $this->belongsTo(Domain::class, 'domain_id');
-    }
+    private $groups = null;
+    private $users = null;
 
-    // Return the controls associated to this measure
+    // Measure status:
+    // 0 - Todo      => realisation_date null
+    // 1 - Proposed  => realisation_date not null (auditee proposed)
+    // 2 - Done      => realisation_date not null
+
+    /** @return BelongsToMany<Control, $this> */
     public function controls(): BelongsToMany
     {
-        return $this->belongsToMany(Control::class)
-            ->whereNotNull('realisation_date')->orderBy('realisation_date');
+        return $this->belongsToMany(Control::class)->orderBy('clause');
     }
 
-    // Return all controls associated to this measure (including pending ones, for API sync)
-    public function allControls(): BelongsToMany
+    /** @return HasMany<Action, $this> */
+    public function actions(): HasMany
     {
-        return $this->belongsToMany(Control::class);
+        return $this->hasMany(Action::class, 'measure_id');
     }
 
-    // Check if there is an empty control associated with this measure
-    public function isActive(): bool
+    /** @return HasMany<Document, $this> */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class, 'measure_id');
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function users(): BelongsToMany
+    {
+        if ($this->users === null) {
+            $this->users = $this->belongsToMany(User::class, 'control_user', 'measure_id')->orderBy('name');
+        }
+        return $this->users;
+    }
+
+    /** @return BelongsToMany<UserGroup, $this> */
+    public function groups()
+    {
+        if ($this->groups === null) {
+            $this->groups = $this->belongsToMany(UserGroup::class, 'control_user_group', 'measure_id')->orderBy('name');
+        }
+        return $this->groups;
+    }
+
+    public function canMake(): bool
+    {
+        if ($this->status !== 0) {
+            return false;
+        }
+
+        $user = Auth::user();
+
+        if ($this->isAdminOrUser($user)) {
+            return true;
+        }
+
+        if ($this->isAuditorOrAuditeeWithAccess($user)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function canValidate(): bool
+    {
+        if ($this->status !== 1) {
+            return false;
+        }
+
+        $user = Auth::user();
+
+        if ($this->isAdminOrUser($user)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function clauses(int $id): Collection
     {
         return DB::table('controls')
+            ->select('control_id', 'clause')
+            ->join('control_measure', 'control_measure.measure_id', strval($id))
+            ->get();
+    }
+
+    public static function cleanup(string $startDate, bool $dryRun): array
+    {
+        $documentCount = 0;
+        $measureCount = 0;
+        $logCount = 0;
+
+        $logCount = AuditLog::where('created_at', '<', $startDate)->count();
+        if (! $dryRun) {
+            AuditLog::where('created_at', '<', $startDate)->delete();
+        }
+
+        $oldMeasures = Measure::whereNotNull('realisation_date')
+            ->where('realisation_date', '<', $startDate)
+            ->get();
+
+        foreach ($oldMeasures as $measure) {
+            DB::transaction(function () use ($dryRun, $measure, &$documentCount, &$measureCount) {
+                $documents = Document::where('measure_id', $measure->id)->get();
+
+                foreach ($documents as $document) {
+                    if (! $dryRun) {
+                        $filePath = storage_path('docs/' . $document->id);
+                        if (File::exists($filePath)) {
+                            File::delete($filePath);
+                        }
+                        $document->delete();
+                    }
+                    $documentCount++;
+                }
+
+                if (! $dryRun) {
+                    DB::table('control_measure')->where('measure_id', $measure->id)->delete();
+                    DB::table('actions')->where('measure_id', $measure->id)->update(['measure_id' => null]);
+                    Measure::where('next_id', $measure->id)->update(['next_id' => null]);
+                    $measure->delete();
+                }
+                $measureCount++;
+            });
+        }
+
+        return [
+            'documentCount' => $documentCount,
+            'measureCount'  => $measureCount,
+            'logCount'      => $logCount,
+        ];
+    }
+
+    private function isAdminOrUser($user): bool
+    {
+        return in_array($user->role, [1, 2]);
+    }
+
+    private function isAuditorOrAuditeeWithAccess($user): bool
+    {
+        if (! in_array($user->role, [3, 5])) {
+            return false;
+        }
+
+        return $this->isDirectlyAssignedToUser($user) || $this->isAssignedViaGroup($user);
+    }
+
+    private function isDirectlyAssignedToUser($user): bool
+    {
+        return DB::table('control_user')
             ->where('measure_id', $this->id)
-            ->whereNull('realisation_date')
+            ->where('user_id', $user->id)
             ->exists();
     }
 
-    // check if there is an empty control associated with this measure
-    public function isDisabled(): bool
+    private function isAssignedViaGroup($user): bool
     {
-        return DB::table('controls')
-            ->where('measure_id', $this->id)
-            ->exists()
-        &&
-            ! DB::table('controls')
-                ->where('measure_id', $this->id)
-                ->whereNull('realisation_date')
-                ->exists();
+        return DB::table('control_user_group')
+            ->join('user_user_group', 'control_user_group.user_group_id', '=', 'user_user_group.user_group_id')
+            ->where('control_user_group.measure_id', $this->id)
+            ->where('user_user_group.user_id', $user->id)
+            ->exists();
     }
 }

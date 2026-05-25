@@ -17,7 +17,7 @@ class ExceptionFactory extends Factory
             'description' => $this->faker->paragraph(),
             'justification' => $this->faker->sentence(),
             'compensating_controls' => $this->faker->sentence(),
-            'measure_id' => null,
+            'control_id' => null,
             'start_date' => now()->format('Y-m-d'),
             'end_date' => now()->addYear()->format('Y-m-d'),
             'status' => Exception::STATUS_DRAFT,
