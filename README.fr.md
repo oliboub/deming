@@ -1,9 +1,9 @@
 # Deming
 
-[![Latest Release](https://img.shields.io/github/release/dbarzin/deming.svg?style=flat-square)](https://github.com/dbarzin/deming/releases/latest)
-![License](https://img.shields.io/github/license/dbarzin/deming.svg?style=flat-square)
-![Contributors](https://img.shields.io/github/contributors/dbarzin/deming.svg?style=flat-square)
-![Stars](https://img.shields.io/github/stars/dbarzin/deming?style=flat-square)
+[![Latest Release](https://img.shields.io/github/release/sourcentis/deming.svg?style=flat-square)](https://github.com/sourcentis/deming/releases/latest)
+![License](https://img.shields.io/github/license/sourcentis/deming.svg?style=flat-square)
+![Contributors](https://img.shields.io/github/contributors/sourcentis/deming.svg?style=flat-square)
+![Stars](https://img.shields.io/github/stars/sourcentis/deming?style=flat-square)
 
 ## :rocket: Introduction
 
@@ -84,11 +84,11 @@ Selon la norme ISO 27001, chapitre 9.1, il est impératif d'évaluer les perform
 | PCI.DSS.4.0.EN.xlsx                  | [PCI DSS, v4.0, in English](https://blog.pcisecuritystandards.org/pci-dss-v4-0-resource-hub) |
 | sp800-53r5-control-catalog-full.xlsx | [NIST SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final)    |
 
-Ajouter votre propre référentiel dans cette liste se fait via une feuille de calcul dans [l'interface d'administration](https://dbarzin.github.io/deming/config.fr/#importation) de Deming.
+Ajouter votre propre référentiel dans cette liste se fait via une feuille de calcul dans [l'interface d'administration](https://sourcentis.github.io/deming/config.fr/#importation) de Deming.
 
 ## :books: Documentation
 
-Pour en savoir plus sur l'utilisation de l'application, consultez la [documentation utilisateur](https://dbarzin.github.io/deming/index.fr/).
+Pour en savoir plus sur l'utilisation de l'application, consultez la [documentation utilisateur](https://sourcentis.github.io/deming/index.fr/).
 
 ## :hammer_and_wrench: Technologies utilisées
 
@@ -99,13 +99,13 @@ Pour en savoir plus sur l'utilisation de l'application, consultez la [documentat
 
 ## ⚙️ Installation
 
-Suivez la [procédure d'installation pour Ubuntu](https://github.com/dbarzin/deming/blob/main/INSTALL.fr.md) pour mettre en place l'application.
+Suivez la [procédure d'installation pour Ubuntu](https://github.com/sourcentis/deming/blob/main/INSTALL.fr.md) pour mettre en place l'application.
 
-Suivez la [procédure d'installation pour Debian](https://github.com/dbarzin/deming/blob/main/INSTALL.debian.fr.md) pour mettre en place l'application.
+Suivez la [procédure d'installation pour Debian](https://github.com/sourcentis/deming/blob/main/INSTALL.debian.fr.md) pour mettre en place l'application.
 
 ## :car: Feuille de route
 
-Consultez la [feuille de route](https://github.com/dbarzin/deming/blob/main/ROADMAP.md) pour découvrir les futures évolutions de **Deming**.
+Consultez la [feuille de route](https://github.com/sourcentis/deming/blob/main/ROADMAP.md) pour découvrir les futures évolutions de **Deming**.
 
 ## :scroll: License
 
