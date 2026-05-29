@@ -3,9 +3,12 @@
 namespace App\Providers;
 
 use DB;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use LdapRecord\Container;
@@ -52,6 +55,18 @@ class AppServiceProvider extends ServiceProvider
                 Log::channel('ldap')
             );
         }
+
+        RateLimiter::for('api', function (Request $request) {
+            if ($request->user()?->isAdmin()) {
+                return Limit::none();
+            }
+
+            $limit = (int) config('api.rate_limit', 60);
+            $decay = (int) config('api.rate_limit_decay', 1);
+
+            return Limit::perMinutes($decay, $limit)
+                ->by($request->user()?->id ?: $request->ip());
+        });
 
         if (in_array('keycloak', Config::get('services.socialite_controller.providers'))) {
             Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
