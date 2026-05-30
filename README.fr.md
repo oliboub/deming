@@ -88,7 +88,7 @@ Ajouter votre propre référentiel dans cette liste se fait via une feuille de c
 
 ## :books: Documentation
 
-Pour en savoir plus sur l'utilisation de l'application, consultez la [documentation utilisateur](https://sourcentis.github.io/deming/index.fr/).
+Pour en savoir plus sur l'utilisation de l'application, consultez la [documentation utilisateur](https://sourcentis.github.io/deming/index/fr/).
 
 ## :hammer_and_wrench: Technologies utilisées
 
