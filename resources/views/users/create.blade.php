@@ -74,8 +74,8 @@
 					<label class="label" for="description">{{ trans('cruds.user.fields.password') }}</label>
 				</div>
 	    		<div class="cell-5">
-					<input type="password" name="password1"/>
-					<input type="password" name="password2"/>
+					<input type="password" class="input" name="password1"/>
+					<input type="password" class="input" name="password2"/>
 				</div>
 			</div>
 			@endif
