@@ -7,7 +7,7 @@ use Database\Seeders\RiskScoringConfigSeeder;
 
 beforeEach(function () {
     $this->admin   = User::factory()->admin()->create();
-    $this->user    = User::factory()->create(['role' => User::ROLE_USER]);
+    $this->user    = User::factory()->user()->create();
     $this->auditor = User::factory()->auditor()->create();
     $this->seed(RiskScoringConfigSeeder::class);
 

@@ -6,10 +6,10 @@ test('guest is redirected to login', function () {
     $this->get('/group/toggle')->assertRedirect('/login');
 });
 
-test('non-admin cannot toggle group view', function () {
-    $user = User::factory()->create(['role' => User::ROLE_USER]);
+test('auditee cannot toggle group view', function () {
+    $auditee = User::factory()->auditee()->create();
 
-    $this->actingAs($user)
+    $this->actingAs($auditee)
         ->get('/group/toggle')
         ->assertStatus(403);
 
@@ -33,16 +33,33 @@ test('admin can toggle group view on and off', function () {
     expect(session('group_view'))->toBeTrue();
 });
 
+test('user can toggle group view on and off', function () {
+    $user = User::factory()->user()->create();
+
+    // Default (no session key yet) is "sees all data", so the first toggle turns it off
+    $this->actingAs($user)->get('/group/toggle')->assertRedirect();
+    expect(session('group_view'))->toBeFalse();
+
+    $this->actingAs($user)->get('/group/toggle')->assertRedirect();
+    expect(session('group_view'))->toBeTrue();
+});
+
 test('admin sees all data by default when no session preference is set', function () {
     $admin = User::factory()->admin()->create();
 
     expect($admin->seesAllData())->toBeTrue();
 });
 
-test('forged group_view session does not bypass filtering for non-admin', function () {
-    $user = User::factory()->create(['role' => User::ROLE_USER]);
+test('user sees all data by default when no session preference is set', function () {
+    $user = User::factory()->user()->create();
+
+    expect($user->seesAllData())->toBeTrue();
+});
+
+test('forged group_view session does not bypass filtering for auditee', function () {
+    $auditee = User::factory()->auditee()->create();
 
     session(['group_view' => true]);
 
-    expect($user->seesAllData())->toBeFalse();
+    expect($auditee->seesAllData())->toBeFalse();
 });

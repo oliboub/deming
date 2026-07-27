@@ -10,7 +10,7 @@ class GroupViewController extends Controller
 {
     public function toggle(): RedirectResponse
     {
-        abort_if(!Auth::user()->isAdmin(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(!(Auth::user()->isAdmin() || Auth::user()->isUser()), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         session(['group_view' => !session('group_view', true)]);
 

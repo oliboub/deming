@@ -311,7 +311,8 @@
                 </div>
             </div>
             <ul class="app-bar-menu ml-auto">
-                <a href="/bob/index?attribute=none&period=0&scope=none&domain=0&status=2" class="no-underline">
+                <a href="/bob/index?attribute=none&period=0&scope=none&domain=0&status=2" class="no-underline"
+                   title="{{ __('menu.new') }}" aria-label="{{ __('menu.new') }}">
                     <span class="mif-mail-outline mif-2x"></span>
                     @if (Session::get("planed_controls_this_month_count")!=null)
                     <span class="badge bg-green fg-white mt-2 mr-1">{{Session::get("planed_controls_this_month_count")}}</span>
@@ -319,7 +320,8 @@
                         &nbsp;
                     @endif
                 </a>
-                <a href="/bob/index?attribute=none&period=99&scope=none&domain=0&status=1&late=1" class="no-underline">
+                <a href="/bob/index?attribute=none&period=99&scope=none&domain=0&status=1&late=1" class="no-underline"
+                   title="{{ __('menu.late') }}" aria-label="{{ __('menu.late') }}">
                     <span class="mif-notifications mif-2x"></span>
                     @if (Session::get("late_controls_count")!=null)
                     <span class="badge bg-red fg-white mt-2 mr-1">{{Session::get("late_controls_count")}}</span>
@@ -327,7 +329,8 @@
                         &nbsp;
                     @endif
                 </a>
-                <a href="/actions" class="no-underline">
+                <a href="/actions" class="no-underline"
+                   title="{{ __('menu.action_plan') }}" aria-label="{{ __('menu.action_plan') }}">
                     <span class="mif-flag mif-2x"></span>
                     @if (Session::get("action_plans_count")!=null)
                     <span class="badge bg-blue fg-white mt-2 mr-1">{{Session::get("action_plans_count")}}</span>
@@ -335,14 +338,15 @@
                         &nbsp;
                     @endif
                 </a>
-                @if(auth()->user()->isAdmin())
+                @if(auth()->user()->isAdmin() || auth()->user()->isUser())
                 <a href="/group/toggle" class="no-underline group-view-toggle {{ auth()->user()->seesAllData() ? 'group-view-active' : '' }}"
-                   title="{{ auth()->user()->seesAllData() ? __('common.all_data') : __('common.my_data') }}"
-                   aria-label="{{ auth()->user()->seesAllData() ? __('common.all_data') : __('common.my_data') }}">
+                   title="{{ auth()->user()->seesAllData() ? __('common.my_data')  : __('common.all_data') }}"
+                   aria-label="{{ auth()->user()->seesAllData() ? __('common.my_data') : __('common.all_data') }}">
                     <span class="mif-group mif-2x"></span>
                 </a>
                 @endif
-                <a href="/users/{{ Auth::User()->id }}/edit" class="no-underline">
+                <a href="/users/{{ Auth::User()->id }}/edit" class="no-underline"
+                   title="{{ __('menu.profile') }}" aria-label="{{ __('menu.profile') }}">
                     <span class="mif-person mif-2x"></span>
                     <span class="badge bg-black fg-white mt-2 mr-1">{{ Auth::User()->initiales() }}</span>
                 </a>

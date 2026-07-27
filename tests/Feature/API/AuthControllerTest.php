@@ -12,9 +12,8 @@ beforeEach(function () {
 });
 
 test('login with valid credentials returns token', function () {
-    $user = User::factory()->create([
+    $user = User::factory()->apiUser()->create([
         'password' => bcrypt('secret123'),
-        'role' => User::ROLE_API,
     ]);
 
     $response = $this->postJson('/api/login', [

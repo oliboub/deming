@@ -13,6 +13,9 @@ return [
     'radar_by_attributes' => 'nach Attributen',
     'radar_by_actions' => 'nach Aktionsplänen',
     'action_plan' => 'Aktionspläne',
+    'new' => 'Neu',
+    'late' => 'Verspätet',
+    'profile' => 'Profil',
     'configuration' => [
         'title' => 'Konfiguration',
         'users' => 'Benutzer',

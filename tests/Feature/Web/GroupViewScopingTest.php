@@ -6,8 +6,8 @@ use App\Models\Measure;
 use App\Models\User;
 
 beforeEach(function () {
-    $this->owner = User::factory()->create(['role' => User::ROLE_USER]);
-    $this->other = User::factory()->create(['role' => User::ROLE_USER]);
+    $this->owner = User::factory()->user()->create();
+    $this->other = User::factory()->user()->create();
 
     $this->ownedDomain = Domain::factory()->create(['title' => 'Owned Domain']);
     $ownedControl = Control::factory()->create(['domain_id' => $this->ownedDomain->id]);
@@ -50,25 +50,42 @@ test('admin sees all domains by default (group view on)', function () {
     $response->assertSee('Other Domain');
 });
 
-test('regular user only sees their own domains', function () {
+test('regular user sees all domains by default (group view on)', function () {
+    $response = $this->actingAs($this->owner)->get('/domains');
+
+    $response->assertSee('Owned Domain');
+    $response->assertSee('Other Domain');
+});
+
+test('regular user only sees their own domains when group view is toggled off', function () {
+    $this->actingAs($this->owner)->get('/group/toggle');
+
     $response = $this->actingAs($this->owner)->get('/domains');
 
     $response->assertSee('Owned Domain');
     $response->assertDontSee('Other Domain');
 });
 
-test('regular user stays filtered even with a forged group_view session value', function () {
+test('auditee stays filtered even with a forged group_view session value', function () {
+    $auditee = User::factory()->auditee()->create();
+    Measure::whereHas('controls', fn ($q) => $q->where('domain_id', $this->ownedDomain->id))
+        ->first()
+        ->users()->attach($auditee->id);
+
     session(['group_view' => true]);
 
-    $response = $this->actingAs($this->owner)->get('/domains');
+    $response = $this->actingAs($auditee)->get('/domains');
 
     $response->assertSee('Owned Domain');
     $response->assertDontSee('Other Domain');
 });
 
-test('mif-group icon is only rendered for admins', function () {
+test('mif-group icon is rendered for admins and users, not for auditees', function () {
     $admin = User::factory()->admin()->create();
     $this->actingAs($admin)->get('/domains')->assertSee('mif-group', false);
 
-    $this->actingAs($this->owner)->get('/domains')->assertDontSee('mif-group', false);
+    $this->actingAs($this->owner)->get('/domains')->assertSee('mif-group', false);
+
+    $auditee = User::factory()->auditee()->create();
+    $this->actingAs($auditee)->get('/domains')->assertDontSee('mif-group', false);
 });
