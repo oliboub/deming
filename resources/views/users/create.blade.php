@@ -61,7 +61,7 @@
 			</div>
 	    	<div class="row">
 	    		<div class="cell-1">
-					<label class="label" for="description">{{ trans('cruds.user.fields.email') }}</label>
+					<label class="label" for="email">{{ trans('cruds.user.fields.email') }}</label>
 				</div>
 	    		<div class="cell-3">
 					<input type="text" name="email" class="input {{ $errors->has('email') ? 'is-danger' : ''}}" value="{{ old('email') }}" size="120">
@@ -71,7 +71,7 @@
 	        @if (Config::get('app.ldap_domain') === null)
 	    	<div class="row">
 	    		<div class="cell-1">
-					<label class="label" for="description">{{ trans('cruds.user.fields.password') }}</label>
+					<label class="label" for="password">{{ trans('cruds.user.fields.password') }}</label>
 				</div>
 	    		<div class="cell-5">
 					<input type="password" class="input" name="password1"/>
