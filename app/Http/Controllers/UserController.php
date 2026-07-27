@@ -165,7 +165,7 @@ class UserController extends Controller
         $user->language = $request->input('language');
 
         // Update controls assigned to the user
-        if (Auth::User()->isAdmin() || Auth::User()->isUser()) {
+        if (Auth::user()->isAdmin() || Auth::user()->isUser()) {
             $user->lastMeasures()->sync($request->input('controls', []));
         }
 
