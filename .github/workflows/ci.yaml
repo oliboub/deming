@@ -67,6 +67,10 @@ jobs:
         run: |
           php artisan deming:generate-tests
 
+      - name: Run tests
+        run: |
+          php artisan test
+
       - name: Run Laravel Server
         run: |
             php artisan serve --no-reload &
