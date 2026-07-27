@@ -162,7 +162,7 @@ class User extends Authenticatable implements OAuthenticatable
     public function seesAllData(): bool
     {
         if ($this->isAdmin()) {
-            return (bool) session('group_view', false);
+            return (bool) session('group_view', true);
         }
 
         return $this->isAuditor() || $this->isAPI();

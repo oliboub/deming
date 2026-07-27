@@ -297,9 +297,9 @@
                     @endif
                 </a>
                 @if(auth()->user()->isAdmin())
-                <a href="/group/toggle" class="no-underline group-view-toggle {{ session('group_view') ? 'group-view-active' : '' }}"
-                   title="{{ session('group_view') ? __('common.my_data') : __('common.all_data') }}"
-                   aria-label="{{ session('group_view') ? __('common.all_data') : __('common.my_data') }}">
+                <a href="/group/toggle" class="no-underline group-view-toggle {{ auth()->user()->seesAllData() ? 'group-view-active' : '' }}"
+                   title="{{ auth()->user()->seesAllData() ? __('common.all_data') : __('common.my_data') }}"
+                   aria-label="{{ auth()->user()->seesAllData() ? __('common.all_data') : __('common.my_data') }}">
                     <span class="mif-group mif-2x"></span>
                 </a>
                 @endif

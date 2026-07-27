@@ -22,12 +22,15 @@ beforeEach(function () {
     $otherMeasure->users()->attach($this->other->id);
 });
 
-test('admin sees only their own domains when group view is off', function () {
+test('admin sees only their own domains when group view is toggled off', function () {
     $admin = User::factory()->admin()->create();
     // Assign the admin to the "owned" measure instead of $this->owner
     Measure::whereHas('controls', fn ($q) => $q->where('domain_id', $this->ownedDomain->id))
         ->first()
         ->users()->attach($admin->id);
+
+    // Default is "sees all data"; toggle it off
+    $this->actingAs($admin)->get('/group/toggle');
 
     $response = $this->actingAs($admin)->get('/domains');
 
@@ -35,13 +38,11 @@ test('admin sees only their own domains when group view is off', function () {
     $response->assertDontSee('Other Domain');
 });
 
-test('admin sees all domains when group view is on', function () {
+test('admin sees all domains by default (group view on)', function () {
     $admin = User::factory()->admin()->create();
     Measure::whereHas('controls', fn ($q) => $q->where('domain_id', $this->ownedDomain->id))
         ->first()
         ->users()->attach($admin->id);
-
-    $this->actingAs($admin)->get('/group/toggle');
 
     $response = $this->actingAs($admin)->get('/domains');
 

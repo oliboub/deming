@@ -25,11 +25,18 @@ test('auditor cannot toggle group view', function () {
 test('admin can toggle group view on and off', function () {
     $admin = User::factory()->admin()->create();
 
-    $this->actingAs($admin)->get('/group/toggle')->assertRedirect();
-    expect(session('group_view'))->toBeTrue();
-
+    // Default (no session key yet) is "sees all data", so the first toggle turns it off
     $this->actingAs($admin)->get('/group/toggle')->assertRedirect();
     expect(session('group_view'))->toBeFalse();
+
+    $this->actingAs($admin)->get('/group/toggle')->assertRedirect();
+    expect(session('group_view'))->toBeTrue();
+});
+
+test('admin sees all data by default when no session preference is set', function () {
+    $admin = User::factory()->admin()->create();
+
+    expect($admin->seesAllData())->toBeTrue();
 });
 
 test('forged group_view session does not bypass filtering for non-admin', function () {

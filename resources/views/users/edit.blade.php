@@ -88,7 +88,7 @@
 			</div>
 			@endif
 
-        @if ((Auth::User()->role === 1)||(Auth::User()->role === 2))
+        @if (Auth::User()->isAdmin() || Auth::User()->isUser())
     	<div class="row">
     		<div class="cell-2">
 	    		<strong>{{ trans('cruds.user.fields.controls') }}</strong>
