@@ -47,6 +47,10 @@ jobs:
         run: |
           php artisan key:generate
 
+      - name: Generate Passport keys
+        run: |
+          php artisan passport:keys
+
       - name: Publish any publishable assets from vendor packages
         run: |
           php artisan vendor:publish --all
