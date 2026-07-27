@@ -51,8 +51,8 @@ class ControlController extends Controller
             )
             ->join('domains', 'domains.id', '=', 'controls.domain_id');
 
-        // Filter controls for Auditee: only show controls linked to assigned measures
-        if (Auth::user()->isAuditee()) {
+        // Filter controls to those linked to the user's own measures, unless they see all data
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
 
             $controls->whereExists(function ($query) use ($userId) {
@@ -201,9 +201,9 @@ class ControlController extends Controller
             '403 Forbidden'
         );
 
-        // Auditee: must have an assigned measure on this control
+        // Must have an assigned measure on this control, unless the user sees all data
         abort_if(
-            (Auth::user()->isAuditee()) &&
+            (!Auth::user()->seesAllData()) &&
             ! DB::table('measures')
                 ->join('control_measure', 'control_measure.measure_id', '=', 'measures.id')
                 ->join('measure_user', 'measure_user.measure_id', '=', 'measures.id')

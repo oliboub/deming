@@ -64,6 +64,7 @@ test('auditor cannot create a control', function () {
 
 test('admin can view a control', function () {
     $measure = Measure::factory()->create();
+    $measure->users()->attach($this->admin->id);
     $this->actingAs($this->admin)->get("/bob/show/{$measure->id}")->assertStatus(200);
 });
 

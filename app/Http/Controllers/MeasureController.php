@@ -118,7 +118,7 @@ class MeasureController extends Controller
         $scopes = DB::table('measures')
             ->whereNotNull('scope')
             ->where('scope', '<>', '');
-        if (Auth::user()->role === 5) {
+        if (!Auth::user()->seesAllData()) {
             $scopes = $scopes
                 ->leftJoin('measure_user', 'measures.id', '=', 'measure_user.measure_id')
                 ->leftJoin('measure_user_group', 'measures.id', '=', 'measure_user_group.measure_id')
@@ -146,8 +146,8 @@ class MeasureController extends Controller
             ->leftjoin('controls', 'control_measure.control_id', '=', 'controls.id')
             ->leftjoin('domains', 'controls.domain_id', '=', 'domains.id');
 
-        // Filter for auditee
-        if (Auth::user()->role === 5) {
+        // Filter to the user's own measures, unless they see all data
+        if (!Auth::user()->seesAllData()) {
             $measures = $measures
                 ->leftJoin('measure_user', 'm1.id', '=', 'measure_user.measure_id')
                 ->leftJoin('measure_user_group', 'm1.id', '=', 'measure_user_group.measure_id')
@@ -397,7 +397,7 @@ class MeasureController extends Controller
         );
 
         abort_if(
-            Auth::user()->isAuditee() &&
+            !Auth::user()->seesAllData() &&
             ! (DB::table('measure_user')
                     ->where('measure_id', $id)
                     ->where('user_id', Auth::user()->id)

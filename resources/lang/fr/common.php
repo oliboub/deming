@@ -53,4 +53,7 @@ return [
     'month' => 'Mensuellement',
 
     'months' => 'Mois',
+
+    'my_data' => 'Mes données',
+    'all_data' => 'Toutes les données',
 ];

@@ -24,7 +24,7 @@ class DomainController extends Controller
     {
         $userId = Auth::id();
 
-        if (Auth::user()->isAuditee()) {
+        if (!Auth::user()->seesAllData()) {
             $domains = DB::table('domains')
                 ->select(
                     'domains.id',
@@ -59,6 +59,7 @@ class DomainController extends Controller
                 ) AS measures_count')
                 )
                 ->addBinding([$userId, $userId], 'select')
+                ->groupBy('domains.id', 'domains.framework', 'domains.title', 'domains.description')
                 ->havingRaw('measures_count > 0')
                 ->orderBy('domains.title')
                 ->get();

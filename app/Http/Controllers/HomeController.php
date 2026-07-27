@@ -77,8 +77,8 @@ class HomeController extends Controller
             ->join('control_measure', 'measures.id', '=', 'measure_id')
             ->join('controls', 'control_measure.control_id', '=', 'controls.id');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -105,8 +105,8 @@ class HomeController extends Controller
     {
         $query = DB::table('controls');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->whereExists(function($q) use ($userId) {
                 $q->select(DB::raw(1))
@@ -137,8 +137,8 @@ class HomeController extends Controller
     {
         $query = DB::table('measures');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -165,8 +165,8 @@ class HomeController extends Controller
     {
         $query = DB::table('measures');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -195,8 +195,8 @@ class HomeController extends Controller
         $query = DB::table('measures as c1')
             ->leftJoin('measures as c2', 'c2.next_id', '=', 'c1.id');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -224,8 +224,8 @@ class HomeController extends Controller
     {
         $query = DB::table('measures');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -257,8 +257,8 @@ class HomeController extends Controller
     {
         $query = DB::table('measures');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -286,8 +286,8 @@ class HomeController extends Controller
     {
         $query = DB::table('actions');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->whereExists(function($q) use ($userId) {
                 $q->select(DB::raw(1))
@@ -310,8 +310,8 @@ class HomeController extends Controller
             ->join('controls', 'control_measure.control_id', '=', 'controls.id')
             ->join('domains', 'domains.id', '=', 'controls.domain_id');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -343,8 +343,8 @@ class HomeController extends Controller
             ])
             ->leftJoin('measures as c2', 'c1.id', '=', 'c2.next_id');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -400,8 +400,8 @@ class HomeController extends Controller
         $query = DB::table('measures')
             ->select('id', 'score', 'realisation_date', 'plan_date', 'periodicity');
 
-        // Filtrer uniquement si l'utilisateur est Auditee
-        if (Auth::user()->isAuditee()) {
+        // Filtrer sauf si l'utilisateur voit toutes les données
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $query->where(function($q) use ($userId) {
                 $q->whereExists(function($subQ) use ($userId) {
@@ -456,7 +456,7 @@ class HomeController extends Controller
     private function getRisksCount() {
         $query = Risk::query();
 
-        if (Auth::user()->isAuditee()) {
+        if (!Auth::user()->seesAllData()) {
             $query->ownedBy(Auth::user()->id);
         }
 

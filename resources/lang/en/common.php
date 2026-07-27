@@ -51,5 +51,8 @@ return [
     'day' => 'Daily',
     'week' => 'Weekly',
     'month' => 'Monthly',
-    'months' => 'Months'
+    'months' => 'Months',
+
+    'my_data' => 'My data',
+    'all_data' => 'All data',
 ];

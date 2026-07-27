@@ -101,6 +101,9 @@ Route::namespace('App\\Http\\Controllers')->middleware('auth')->group(function (
     Route::get('/config', 'ConfigurationController@index');
     Route::post('/config/save', 'ConfigurationController@save');
 
+    /* Group view (admin toggle: own data vs all users' data) */
+    Route::get('/group/toggle', 'GroupViewController@toggle');
+
     /* Other */
     Route::resource('domains', 'DomainController');
     Route::resource('attributes', 'AttributeController');

@@ -2,6 +2,7 @@
 
 use App\Models\Control;
 use App\Models\Domain;
+use App\Models\Measure;
 use App\Models\User;
 
 beforeEach(function () {
@@ -81,6 +82,9 @@ test('auditor cannot create a measure', function () {
 
 test('admin can view a measure', function () {
     $control = Control::factory()->create();
+    $measure = Measure::factory()->create();
+    $measure->controls()->attach($control->id);
+    $measure->users()->attach($this->admin->id);
     $this->actingAs($this->admin)->get("/alice/show/{$control->id}")->assertStatus(200);
 });
 

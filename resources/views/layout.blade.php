@@ -296,6 +296,13 @@
                         &nbsp;
                     @endif
                 </a>
+                @if(auth()->user()->isAdmin())
+                <a href="/group/toggle" class="no-underline group-view-toggle {{ session('group_view') ? 'group-view-active' : '' }}"
+                   title="{{ session('group_view') ? __('common.my_data') : __('common.all_data') }}"
+                   aria-label="{{ session('group_view') ? __('common.all_data') : __('common.my_data') }}">
+                    <span class="mif-group mif-2x"></span>
+                </a>
+                @endif
                 <a href="/users/{{ Auth::User()->id }}/edit" class="no-underline">
                     <span class="mif-person mif-2x"></span>
                     <span class="badge bg-black fg-white mt-2 mr-1">{{ Auth::User()->initiales() }}</span>

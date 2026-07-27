@@ -36,8 +36,8 @@ class GlobalSearchController extends Controller
             $query = $model::query();
             $fields = $model::$searchable;
 
-            // Auditee only search on assigned measures (audit instances)
-            if (Auth::user()->isAuditee()) {
+            // Only search the user's own assigned measures (audit instances), unless they see all data
+            if ($model === \App\Models\Measure::class && !Auth::user()->seesAllData()) {
                 $userId = Auth::id();
                 $query = $query->where(function($q) use ($userId) {
                     $q->whereExists(function($subQ) use ($userId) {

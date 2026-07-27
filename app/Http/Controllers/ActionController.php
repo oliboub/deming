@@ -86,8 +86,8 @@ class ActionController extends Controller
             $actions = $actions->where('actions.scope', $scope);
         }
 
-        // filter on auditee actions
-        if (Auth::user()->isAuditee()) {
+        // filter to the current user's own actions, unless they see all data
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $actions = $actions->where(function($query) use ($userId) {
                 // Actions assignées directement à l'utilisateur
