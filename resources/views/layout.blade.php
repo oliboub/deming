@@ -28,6 +28,45 @@
         })();
     </script>
 
+    {{-- Metro UI Table: remember the "rows per page" chosen by the user for each table --}}
+    <script>
+        (function() {
+            const STORAGE_PREFIX = "metro-table-rows:";
+
+            function getRowsSelect(tableId) {
+                const table = document.getElementById(tableId);
+                const component = table ? table.closest(".table-component") : null;
+                return component ? component.querySelector(".table-rows-block select") : null;
+            }
+
+            window.metroTableSetup = {
+                onTableCreate: function () {
+                    const id = this.id;
+                    const saved = id ? localStorage.getItem(STORAGE_PREFIX + id) : null;
+                    if (!saved) {
+                        return;
+                    }
+
+                    const select = getRowsSelect(id);
+                    const hasOption = select && Array.from(select.options).some((o) => o.value === saved);
+                    if (!hasOption) {
+                        return;
+                    }
+
+                    const plugin = Metro.getPlugin(select, "select");
+                    if (plugin) {
+                        plugin.val(saved);
+                    }
+                },
+                onRowsCountChange: function (val) {
+                    if (this.id) {
+                        localStorage.setItem(STORAGE_PREFIX + this.id, val);
+                    }
+                },
+            };
+        })();
+    </script>
+
 </head>
 <body class="cloak">
 @if (Config::get('app.test'))
