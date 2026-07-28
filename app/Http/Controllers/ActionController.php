@@ -299,10 +299,10 @@ class ActionController extends Controller
             ->orderBy('id')
             ->get();
 
-        $measures = DB::table('control_measure')
-            ->select('measure_id')
-            ->where('control_id', $id)
-            ->pluck('measure_id')
+        $measures = DB::table('action_measure')
+            ->select('control_id')
+            ->where('action_id', $id)
+            ->pluck('control_id')
             ->toArray();
 
         // Get users
