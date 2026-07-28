@@ -7,6 +7,8 @@ Il contient la liste des attributs et permet de créer, supprimer ou modifier de
 
 [![Screenshot](images/tags.fr.png)](images/tags.fr.png)
 
+Les administrateurs disposent d'un bouton « Gérer » qui ouvre un formulaire permettant de remplacer globalement une valeur d'attribut existante par une nouvelle valeur. Le remplacement s'applique partout où la valeur est utilisée : dans les listes d'attributs, dans les contrôles, ainsi que dans les controles qui n'ont pas encore été réalisés. Les contrôles déjà réalisés ne sont pas modifiées, car ils constituent un historique.
+
 ## Domaines {#domains}
 
 Cet écran permet de créer, modifier ou supprimer des listes de domaines de sécurité.

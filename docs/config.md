@@ -7,6 +7,8 @@ It contains the list of attributes and allows you to create, delete or modify at
 
 [![Screenshot](images/tags.png)](images/tags.png)
 
+Administrators only have access to a "Manage" button, which opens a form to globally replace an existing attribute value with a new one. The replacement is applied everywhere the value is used: in the attribute lists, in the controls, and in measures that have not yet been carried out. Measures that have already been carried out are left untouched, since they are historical records.
+
 ## Domains <a name="domains"></a>
 
 This screen allows you to create, modify or delete lists of security domains.
