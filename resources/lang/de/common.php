@@ -12,6 +12,7 @@ return [
     'edit' => 'Editieren',
     'import' => 'Import',
     'make' => 'Erledigen',
+    'manage' => 'Verwalten',
     'new' => 'Neu',
     'plan' => 'Planen',
     'reject' => 'Ablehnen',

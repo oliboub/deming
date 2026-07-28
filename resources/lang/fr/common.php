@@ -16,6 +16,7 @@ return [
     'history' => 'Historique',
     'import' => 'Importer',
     'make' => 'Faire',
+    'manage' => 'Gérer',
     'new' => 'Nouveau',
     'plan' => 'Planifier',
     'reject' => "Rejeter",

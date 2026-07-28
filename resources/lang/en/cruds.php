@@ -63,7 +63,13 @@ return [
         'show' => 'Attribute',
         'index' => 'List of attributes',
         'choose' => 'Choose an attribute',
-        'title' => 'Attribute'
+        'title' => 'Attribute',
+        'replace' => [
+            'title' => 'Manage attributes',
+            'old_value' => 'Existing value',
+            'new_value' => 'New value',
+            'success' => 'Value ":old" has been replaced by ":new" in all measures, controls and attributes.',
+        ],
     ],
      'measure' => [
          'description' => '',

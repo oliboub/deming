@@ -287,7 +287,8 @@ class MeasureController extends Controller
             ->pluck('scope');
 
         $values = [];
-        $attributes = DB::table('attributes')->select('values')
+        $attributes = DB::table('attributes')
+            ->select('values')
             ->union(DB::table('controls')
                 ->select(DB::raw('attributes as value')))
             ->get();

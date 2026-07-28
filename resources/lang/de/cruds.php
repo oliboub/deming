@@ -64,7 +64,13 @@ return [
         'show' => 'Attribut',
         'index' => 'Liste der Attribute',
         'choose' => 'Wähle ein Attribut',
-        'title' => 'Attribute'
+        'title' => 'Attribute',
+        'replace' => [
+            'title' => 'Attribute verwalten',
+            'old_value' => 'Bestehender Wert',
+            'new_value' => 'Neuer Wert',
+            'success' => 'Der Wert ":old" wurde in allen Maßnahmen, Kontrollen und Attributen durch ":new" ersetzt.',
+        ],
     ],
      'measure' => [
          'description' => '',

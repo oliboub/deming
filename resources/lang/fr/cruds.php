@@ -63,7 +63,13 @@ return [
         'show' => 'Attribut',
         'index' => 'Liste des attributs',
         'choose' => 'Choisir un attribut',
-        'title' => 'Attribut'
+        'title' => 'Attribut',
+        'replace' => [
+            'title' => 'Gérer les attributs',
+            'old_value' => 'Valeur existante',
+            'new_value' => 'Nouvelle valeur',
+            'success' => 'La valeur ":old" a été remplacée par ":new" dans toutes les mesures, contrôles et attributs.',
+        ],
     ],
     'measure' => [
         'description' => '',

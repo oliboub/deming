@@ -107,6 +107,8 @@ Route::namespace('App\\Http\\Controllers')->middleware('auth')->group(function (
     /* Other */
     Route::resource('domains', 'DomainController');
     Route::resource('attributes', 'AttributeController');
+    Route::get('attribute/replace', 'AttributeController@replace');
+    Route::post('attribute/replace', 'AttributeController@replaceStore');
     Route::resource('users', 'UserController');
     Route::resource('groups', 'UserGroupController');
 
