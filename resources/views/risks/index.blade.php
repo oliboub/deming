@@ -148,7 +148,7 @@
 
             {{-- Status --}}
             <td>
-                <span class="badge {{ \App\Models\Risk::STATUS_COLORS[$risk->status] ?? 'secondary' }}">
+                <span class="badge {{ \App\Models\Risk::STATUS_COLORS[$risk->status] ?? 'secondary' }}" style="font-size:1rem;">
                     {{ \App\Models\Risk::statusLabel($risk->status) }}
                 </span>
             </td>
