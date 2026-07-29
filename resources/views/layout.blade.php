@@ -351,7 +351,7 @@
                     <span class="badge bg-black fg-white mt-2 mr-1">{{ Auth::User()->initiales() }}</span>
                 </a>
                 <li>
-                    <a href="/about" class="no-underline">
+                    <a href="/about" target="_blank" rel="noopener noreferrer" class="no-underline">
                         <span class="mif-help-outline mif-2x"></span>
                     </a>
                 </li>
