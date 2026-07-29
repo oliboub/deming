@@ -24,6 +24,7 @@ L'environnement Docker prend en charge cette fonctionnalité nativement, via l'[
 | `/api/domains` | Domaines / référentiels                                                   |
 | `/api/controls` | **Mesures de sécurité** (exigences à mettre en œuvre, liées à un domaine) |
 | `/api/measures` | **Contrôles** (vérifications périodiques des mesures de sécurité)         |
+| `/api/risks` | **Risques** (registre des risques, avec mesures et actions liées)         |
 | `/api/users` | Utilisateurs                                                              |
 | `/api/documents` | Documents attachés aux instances d'audit                                  |
 | `/api/logs` | Journaux d'audit                                                          |
@@ -84,6 +85,34 @@ des mesures de sécurité couvertes par cette instance :
   "measures": [1]
 }
 ```
+
+### GET /api/risks/{id} — risque
+
+Renvoie les champs du risque ainsi que les clés `controls` et `actions` contenant
+les identifiants des mesures de sécurité et des actions du plan d'action liées :
+
+```json
+{
+  "id": 1,
+  "name": "Fuite de données",
+  "description": "...",
+  "owner_id": null,
+  "probability": 3,
+  "impact": 4,
+  "status": "not_evaluated",
+  "review_frequency": 12,
+  "next_review_at": "2027-07-29",
+  "controls": [1, 2],
+  "actions": [1]
+}
+```
+
+### POST/PUT /api/risks — champs liés optionnels
+
+| Clé | Effet |
+|---|---|
+| `controls` | Synchronise la liste des identifiants de mesures de sécurité liées à ce risque |
+| `actions` | Synchronise la liste des identifiants d'actions du plan d'action liées à ce risque |
 
 ### POST/PUT /api/measures — champs liés optionnels
 
