@@ -389,6 +389,7 @@ return [
             'vulnerability'       => 'Vulnerability',
             'likelihood'          => 'Likelihood',
             'score'               => 'Score',
+            'residual_risk'       => 'Residual risk',
 
             // Treatment
             'status'              => 'Treatment status',
@@ -420,6 +421,15 @@ return [
             'mitigated'            => 'Mitigated',
             'transferred'          => 'Transferred',
             'avoided'              => 'Avoided',
+        ],
+
+        // MONARC treatments (reuse the 'status' keys above)
+        'status_monarc' => [
+            'not_treated' => 'Not treated',
+            'reduction'   => 'Reduction',
+            'denied'      => 'Denied',
+            'accepted'    => 'Accepted',
+            'shared'      => 'Shared',
         ],
     ],
 

@@ -389,6 +389,7 @@ return [
             'vulnerability' => 'Verwundbarkeit',
             'likelihood' => 'Eintrittswahrscheinlichkeit',
             'score' => 'Punktzahl',
+            'residual_risk' => 'Restrisiko',
 
             // Behandlung
             'status' => 'Behandlungsstatus',
@@ -420,6 +421,15 @@ return [
             'mitigated' => 'Gemindert',
             'transferred' => 'Übertragen',
             'avoided' => 'Vermieden',
+        ],
+
+        // MONARC-Behandlungen (nutzen die obigen 'status'-Schlüssel)
+        'status_monarc' => [
+            'not_treated' => 'Nicht behandelt',
+            'reduction' => 'Reduzierung',
+            'denied' => 'Abgelehnt',
+            'accepted' => 'Akzeptiert',
+            'shared' => 'Geteilt',
         ],
     ],
 

@@ -241,10 +241,10 @@
                 </div>
                 <div class="cell-lg-2 cell-md-3">
                     <select name="status" id="risk-status" data-role="select">
-                        @foreach (\App\Models\Risk::STATUS_LABELS as $value => $label)
+                        @foreach (\App\Models\Risk::availableStatuses() as $value => $label)
                             <option value="{{ $value }}"
                                 {{ old('status', $risk->status) === $value ? 'selected' : '' }}>
-                                {{ $label }}
+                                {{ trans($label) }}
                             </option>
                         @endforeach
                     </select>
@@ -298,6 +298,23 @@
                     </div>
                 </div>
             </div>
+
+
+            {{-- Risque résiduel (saisie manuelle, MONARC uniquement) --}}
+            @if ($scoringConfig->usesMonarc())
+            <div class="row">
+            </div>
+
+            <div class="row">
+                <div class="cell-lg-1 cell-md-2">
+                    <strong>{{ trans("cruds.risk.fields.residual_risk") }}</strong>
+                </div>
+                <div class="cell-lg-1 cell-md-2">
+                    <input data-role="spinner" name="residual_risk" min="0" max="99" step="1"
+                           value="{{ old('residual_risk', $risk->residual_risk) }}">
+                </div>
+            </div>
+            @endif
 
             <div class="row">
             </div>

@@ -388,6 +388,7 @@ return [
             'vulnerability'       => 'Vulnérabilité',
             'likelihood'          => 'Vraisemblance',
             'score'               => 'Score',
+            'residual_risk'       => 'Risque résiduel',
 
             // Traitement
             'status'              => 'Statut de traitement',
@@ -419,6 +420,15 @@ return [
             'mitigated'            => 'Mitigé',
             'transferred'          => 'Transféré',
             'avoided'              => 'Évité',
+        ],
+
+        // Traitements MONARC (réutilisent les clés de 'status' ci-dessus)
+        'status_monarc' => [
+            'not_treated' => 'Non traité',
+            'reduction'   => 'Réduction',
+            'denied'      => 'Refusé',
+            'accepted'    => 'Accepté',
+            'shared'      => 'Partagé',
         ],
     ],
 
