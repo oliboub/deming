@@ -75,3 +75,5 @@ Deming permet de répondre à ces exigences et de conserver les informations doc
 **Indicateur** : résultat de l’application d’un modèle analytique à une ou plusieurs variables en relation avec les critères de décision ou d’un besoin d’information [ISO/IEC 27004].
 
 **Attribut** : propriété ou caractéristique d’un objet qui peut être distingué quantitativement ou qualitativement par des moyens humains ou automatiques [ISO/IEC 15939:2007].
+
+**Risque** : effet de l’incertitude sur l’atteinte des objectifs. Dans le contexte de la sécurité de l’information, il s’exprime généralement en termes de sources de risque, d’événements potentiels, de leurs conséquences et de leur vraisemblance [ISO/IEC 27000].

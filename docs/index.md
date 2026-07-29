@@ -76,3 +76,6 @@ an information need [ISO/IEC 27004].
 
 **Attribute**: property or characteristic of an object that can be quantitatively or qualitatively distinguished by human or
 automatic means [ISO/IEC 15939:2007].
+
+**Risk**: effect of uncertainty on objectives. In the context of information security, it is usually expressed in terms of risk sources,
+potential events, their consequences and their likelihood [ISO/IEC 27000].
