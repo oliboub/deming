@@ -93,6 +93,23 @@ test('auditor can access edit form', function () {
     $this->actingAs($this->auditor)->get("/action/edit/{$action->id}")->assertStatus(200);
 });
 
+test('edit form pre-selects only the controls linked to this action', function () {
+    $linkedControl = Control::factory()->create();
+    $otherControl = Control::factory()->create();
+
+    $action = Action::factory()->create();
+    $action->controls()->sync([$linkedControl->id]);
+
+    // Another action links a different control: must not leak into the first action's selection.
+    $otherAction = Action::factory()->create();
+    $otherAction->controls()->sync([$otherControl->id]);
+
+    $this->actingAs($this->admin)
+        ->get("/action/edit/{$action->id}")
+        ->assertStatus(200)
+        ->assertViewHas('measures', [$linkedControl->id]);
+});
+
 test('admin can save an action', function () {
     $action = Action::factory()->create();
 

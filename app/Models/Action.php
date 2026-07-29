@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Action extends Model
 {
@@ -46,18 +47,18 @@ class Action extends Model
 
     // Type
     // 1 - Major - red
-    // 2 - Minor - organge
+    // 2 - Minor - orange
     // 3 - Observation - yellow
     // 4 - Opportunity - green
 
-    public function owners()
+    public function owners() : BelongsToMany
     {
         return $this->belongsToMany(User::class, 'action_user', 'action_id')->orderBy('name');
     }
 
-    public function controls()
+    public function controls() : BelongsToMany
     {
-        return $this->belongsToMany(Control::class, 'action_measure', 'action_id', 'control_id');
+        return $this->belongsToMany(Control::class, 'action_control', 'action_id', 'control_id');
     }
 
     // Computer progress history of an action

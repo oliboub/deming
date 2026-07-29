@@ -511,8 +511,8 @@ class ReportController extends Controller
         // filter on framework
         if ($framework !== null) {
             $actions = $actions
-                ->join('action_measure', 'actions.id', '=', 'action_measure.action_id')
-                ->join('controls', 'controls.id', '=', 'action_measure.control_id')
+                ->join('action_control', 'actions.id', '=', 'action_control.action_id')
+                ->join('controls', 'controls.id', '=', 'action_control.control_id')
                 ->join('domains', 'domains.id', '=', 'controls.domain_id')
                 ->where('domains.framework', '=', $framework);
         }

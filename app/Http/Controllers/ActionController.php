@@ -299,7 +299,7 @@ class ActionController extends Controller
             ->orderBy('id')
             ->get();
 
-        $measures = DB::table('action_measure')
+        $measures = DB::table('action_control')
             ->select('control_id')
             ->where('action_id', $id)
             ->pluck('control_id')
@@ -506,7 +506,7 @@ class ActionController extends Controller
         abort_if($action === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
         // delete links
-        DB::table('action_measure')->where('action_id', $action->id)->delete();
+        DB::table('action_control')->where('action_id', $action->id)->delete();
 
         // relete links to owners
         $action->owners()->detach();

@@ -36,7 +36,7 @@ class GenerateTestData extends Command
 
         // Remove data in documents and measures tables
         DB::table('documents')->delete();
-        DB::table('action_measure')->delete();
+        DB::table('action_control')->delete();
         DB::table('action_user')->delete();
         DB::table('actions')->delete();
         DB::table('measures')->update(['next_id' => null]);
