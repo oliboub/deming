@@ -4,7 +4,7 @@ use App\Models\User;
 
 beforeEach(function () {
     $this->admin = User::factory()->admin()->create();
-    $this->user  = User::factory()->create(['role' => User::ROLE_USER]);
+    $this->user  = User::factory()->user()->create();
 });
 
 test('guest is redirected to login', function () {
@@ -61,7 +61,7 @@ test('user can view their own profile', function () {
 });
 
 test('user cannot view another user', function () {
-    $other = User::factory()->create(['role' => User::ROLE_USER]);
+    $other = User::factory()->user()->create();
     $this->actingAs($this->user)->get("/users/{$other->id}")->assertStatus(403);
 });
 

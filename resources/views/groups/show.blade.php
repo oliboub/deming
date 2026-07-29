@@ -30,7 +30,7 @@
         </div>
     	<div class="row">
 			<div class="cell-lg-12 cell-md-12">
-			    <table class="table striped row-hover cell-border row-border"
+			    <table id="group-users-table" class="table striped row-hover cell-border row-border"
 			       data-role="table"
 			       data-rows="25"
 			       data-show-activity="true"
@@ -75,7 +75,7 @@
         </div>
     	<div class="row">
 			<div class="cell-lg-12 cell-md-12">
-			    <table class="table striped row-hover cell-border row-border"
+			    <table id="group-measures-table" class="table striped row-hover cell-border row-border"
 			       data-role="table"
 			       data-rows="25"
 			       data-show-activity="true"

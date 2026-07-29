@@ -106,12 +106,16 @@
             <center>
                 @if ($action->type==1)
                     <span class="mif-warning fg-red" style="font-size: 1.5rem;" title="{{ trans('cruds.action.types.major') }}"></span>
+                    <div class="fg-red text-bold">{{ trans('cruds.action.types.major') }}</div>
                 @elseif ($action->type==2)
                     <span class="mif-warning fg-orange" style="font-size: 1.5rem;" title="{{ trans('cruds.action.types.minor') }}"></span>
+                    <div class="fg-orange text-bold">{{ trans('cruds.action.types.minor') }}</div>
                 @elseif ($action->type==3)
-                    <span class="mif-eye fg-dark-gray" style="font-size: 1.5rem;" title="{{ trans('cruds.action.types.observation') }}"></span>
+                    <span class="mif-eye fg-yellow" style="font-size: 1.5rem;" title="{{ trans('cruds.action.types.observation') }}"></span>
+                    <div class="fg-yellow text-bold">{{ trans('cruds.action.types.observation') }}</div>
                 @elseif ($action->type==4)
                     <span class="mif-thumbs-up fg-green" style="font-size: 1.5rem;" title="{{ trans('cruds.action.types.opportunity') }}"></span>
+                    <div class="fg-green text-bold">{{ trans('cruds.action.types.opportunity') }}</div>
                 @endif
             </center>
             </td>

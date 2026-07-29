@@ -84,8 +84,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const measuresSection = document.getElementById('controls-section');
         const actionsSection  = document.getElementById('actions-section');
 
-        if (measuresSection) measuresSection.style.display = (status === 'mitigated')     ? '' : 'none';
-        if (actionsSection)  actionsSection.style.display  = (status === 'not_accepted')  ? '' : 'none';
+        if (measuresSection) measuresSection.style.display = (status === 'mitigated') ? '' : 'none';
+        if (actionsSection)  actionsSection.style.display  = (status === 'not_accepted' || (status === 'mitigated' && usesMonarc)) ? '' : 'none';
     }
 
     // ---- Bindings ----

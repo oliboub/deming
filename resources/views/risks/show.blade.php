@@ -206,7 +206,7 @@
         </div>
         <div class="cell-lg-1 cell-md-1">
             <span class="badge {{ \App\Models\Risk::STATUS_COLORS[$risk->status] ?? 'secondary' }}" style="font-size:1rem;">
-                {{ \App\Models\Risk::STATUS_LABELS[$risk->status] ?? $risk->status }}
+                {{ \App\Models\Risk::statusLabel($risk->status) }}
             </span>
         </div>
         @if ($risk->status_comment)
@@ -242,6 +242,32 @@
                 <a href="/action/show/{{ $action->id }}">{{ $action->name }}</a>
                 @if (!$loop->last) , @endif
             @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Risque résiduel (MONARC uniquement) --}}
+    @if ($scoringConfig->usesMonarc())
+    <div class="row">
+        <div class="cell-lg-1 cell-md-2">
+            <strong>{{ trans("cruds.risk.fields.residual_risk") }}</strong>
+        </div>
+        <div class="cell-lg-1 cell-md-1">
+            @if ($risk->residual_risk !== null)
+                @php
+                    $residualThreshold = $scoringConfig->thresholdFor($risk->residual_risk);
+                @endphp
+                <span class="badge"
+                      style="
+                        font-size:1.1rem;
+                        background:{{ $residualThreshold['color'] }};
+                        color: {{ contrast_color($residualThreshold['color']) }}"
+                >
+                    {{ $risk->residual_risk }}
+                </span>
+            @else
+                <span class="badge secondary" style="font-size:1.1rem">—</span>
+            @endif
         </div>
     </div>
     @endif

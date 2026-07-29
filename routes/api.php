@@ -21,6 +21,7 @@ Route::namespace('App\\Http\\Controllers\\API')->group(function () {
         Route::apiResource('controls', 'ControlController');
         Route::apiResource('attributes', 'AttributeController');
         Route::apiResource('documents', 'DocumentController');
+        Route::apiResource('risks', 'RiskController');
         Route::apiResource('users', 'UserController');
         Route::apiResource('logs', 'AuditLogController');
     });

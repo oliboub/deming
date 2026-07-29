@@ -14,7 +14,7 @@
             <div class="cell-lg-2 cell-md-3">
                 <select id="filter-status" data-role="select">
                     <option value="none">-- {{ trans("cruds.risk.fields.choose_status") }} --</option>
-                    @foreach (\App\Models\Risk::STATUS_LABELS as $value => $label)
+                    @foreach (\App\Models\Risk::availableStatuses() as $value => $label)
                         <option value="{{ $value }}"
                                 @if(($filters['status'] ?? '') === $value) selected @endif>
                             {{ trans($label) }}
@@ -233,7 +233,7 @@
                     <strong>{{ trans('cruds.risk.fields.by_status') }}</strong>
                 </td>
             </tr>
-                @foreach (\App\Models\Risk::STATUS_LABELS as $status => $label)
+                @foreach (\App\Models\Risk::availableStatuses() as $status => $label)
                 <tr>
                     <td>
                         @if(($stats['by_status'][$status] ?? 0) > 0)
@@ -249,7 +249,7 @@
                         <a href="/risk/index?status={{$status}}" class="no-underline">
                             <span class="badge  {{ \App\Models\Risk::STATUS_COLORS[$status] }}"
                                   style="padding:4px 10px;pointer-events:none">
-                                {{ trans($label) }}
+                                {{ \App\Models\Risk::statusLabel($status) }}
                             </span>
                         </a>
                     </td>

@@ -32,6 +32,7 @@ class RiskExport extends StringValueBinder implements FromQuery, WithMapping, Wi
             'next_review_at',
             'exposure',
             'vulnerability',
+            'residual_risk',
         ];
     }
 
@@ -72,6 +73,7 @@ class RiskExport extends StringValueBinder implements FromQuery, WithMapping, Wi
             'K' => 30,  // next_review_at
             'L' => 10, // exposure
             'M' => 10,  // vulnerability
+            'N' => 10,  // residual_risk
         ];
     }
 
@@ -92,6 +94,7 @@ class RiskExport extends StringValueBinder implements FromQuery, WithMapping, Wi
                 $risk->next_review_at?->format('Y-m-d'),
                 $risk->exposure,
                 $risk->vulnerability,
+                $risk->residual_risk,
             ],
         ];
     }

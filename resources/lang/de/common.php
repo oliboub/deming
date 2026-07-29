@@ -12,6 +12,7 @@ return [
     'edit' => 'Editieren',
     'import' => 'Import',
     'make' => 'Erledigen',
+    'manage' => 'Verwalten',
     'new' => 'Neu',
     'plan' => 'Planen',
     'reject' => 'Ablehnen',
@@ -45,5 +46,8 @@ return [
     'never' => 'Nie',
     'day' => 'täglich',
     'week' => 'wöchentlich',
-    'month' => 'monatlich'
+    'month' => 'monatlich',
+
+    'my_data' => 'Meine Daten',
+    'all_data' => 'Alle Daten',
 ];

@@ -6,7 +6,7 @@ use App\Models\User;
 
 beforeEach(function () {
     $this->admin   = User::factory()->admin()->create();
-    $this->user    = User::factory()->create(['role' => User::ROLE_USER]);
+    $this->user    = User::factory()->user()->create();
     $this->auditor = User::factory()->auditor()->create();
 });
 
@@ -64,6 +64,7 @@ test('auditor cannot create a control', function () {
 
 test('admin can view a control', function () {
     $measure = Measure::factory()->create();
+    $measure->users()->attach($this->admin->id);
     $this->actingAs($this->admin)->get("/bob/show/{$measure->id}")->assertStatus(200);
 });
 

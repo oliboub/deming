@@ -16,6 +16,7 @@ return [
     'history' => 'Historique',
     'import' => 'Importer',
     'make' => 'Faire',
+    'manage' => 'Gérer',
     'new' => 'Nouveau',
     'plan' => 'Planifier',
     'reject' => "Rejeter",
@@ -53,4 +54,7 @@ return [
     'month' => 'Mensuellement',
 
     'months' => 'Mois',
+
+    'my_data' => 'Mes données',
+    'all_data' => 'Toutes les données',
 ];

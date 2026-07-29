@@ -241,10 +241,10 @@
                 </div>
                 <div class="cell-lg-2 cell-md-3">
                     <select name="status" id="risk-status" data-role="select">
-                        @foreach (\App\Models\Risk::STATUS_LABELS as $value => $label)
+                        @foreach (\App\Models\Risk::availableStatuses() as $value => $label)
                             <option value="{{ $value }}"
                                 {{ old('status', $risk->status) === $value ? 'selected' : '' }}>
-                                {{ $label }}
+                                {{ trans($label) }}
                             </option>
                         @endforeach
                     </select>
@@ -264,7 +264,6 @@
                 <div class="row">
                     <div class="cell-lg-1 cell-md-2">
                         <strong>{{ trans("cruds.risk.fields.controls") }}</strong>
-                        <br><small class="text-muted">{{ trans('cruds.risk.fields.controls_hint') }}</small>
                     </div>
                     <div class="cell-lg-6 cell-md-8">
                         <select name="control_ids[]" data-cls-tag="tag-no-truncate" data-role="select" data-filter="true" multiple>
@@ -275,16 +274,20 @@
                                 </option>
                             @endforeach
                         </select>
+                        <small class="text-muted">{{ trans('cruds.risk.fields.controls_hint') }}</small>
                     </div>
                 </div>
             </div>
 
-            {{-- Plans d'action (not_accepted) --}}
-            <div id="actions-section" @if($risk->status !== 'not_accepted') style="display:none" @endif>
+            {{-- Plans d'action (not_accepted, ou mitigated en mode MONARC) --}}
+            @php
+                $showActions = $risk->status === 'not_accepted'
+                    || ($risk->status === 'mitigated' && $scoringConfig->usesMonarc());
+            @endphp
+            <div id="actions-section" @if(!$showActions) style="display:none" @endif>
                 <div class="row">
                     <div class="cell-lg-1 cell-md-2">
                         <strong>{{ trans("cruds.risk.fields.action_plan") }}</strong>
-                        <br><small class="text-muted">{{ trans('cruds.risk.fields.actions_hint') }}</small>
                     </div>
                     <div class="cell-lg-6 cell-md-8">
                         <select name="action_ids[]" data-role="select" data-filter="true" multiple>
@@ -295,9 +298,27 @@
                                 </option>
                             @endforeach
                         </select>
+                        <small class="text-muted">{{ trans('cruds.risk.fields.actions_hint') }}</small>
                     </div>
                 </div>
             </div>
+
+
+            {{-- Risque résiduel (saisie manuelle, MONARC uniquement) --}}
+            @if ($scoringConfig->usesMonarc())
+            <div class="row">
+            </div>
+
+            <div class="row">
+                <div class="cell-lg-1 cell-md-2">
+                    <strong>{{ trans("cruds.risk.fields.residual_risk") }}</strong>
+                </div>
+                <div class="cell-lg-1 cell-md-2">
+                    <input data-role="spinner" name="residual_risk" min="0" max="99" step="1"
+                           value="{{ old('residual_risk', $risk->residual_risk) }}">
+                </div>
+            </div>
+            @endif
 
             <div class="row">
             </div>

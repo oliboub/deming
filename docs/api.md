@@ -24,6 +24,7 @@ The Docker environment supports this functionality natively, via the [entrypoint
 | `/api/domains` | Domains / frameworks                                                  |
 | `/api/controls` | **Security controls** (requirements to implement, linked to a domain) |
 | `/api/measures` | **Measures** (periodic verifications of controls)                     |
+| `/api/risks` | **Risks** (risk register, with linked controls and actions)           |
 | `/api/users` | Users                                                                 |
 | `/api/documents` | Documents attached to audit instances                                 |
 | `/api/logs` | Audit logs                                                            |
@@ -84,6 +85,34 @@ security measures covered by this audit instance:
   "measures": [1]
 }
 ```
+
+### GET /api/risks/{id} — risk
+
+Returns the risk fields plus `controls` and `actions` keys containing the IDs
+of the linked security controls and action plan items:
+
+```json
+{
+  "id": 1,
+  "name": "Data leakage",
+  "description": "...",
+  "owner_id": null,
+  "probability": 3,
+  "impact": 4,
+  "status": "not_evaluated",
+  "review_frequency": 12,
+  "next_review_at": "2027-07-29",
+  "controls": [1, 2],
+  "actions": [1]
+}
+```
+
+### POST/PUT /api/risks — optional related fields
+
+| Key | Effect |
+|---|---|
+| `controls` | Sync the list of security control IDs linked to this risk |
+| `actions` | Sync the list of action plan item IDs linked to this risk |
 
 ### POST/PUT /api/measures — optional related fields
 

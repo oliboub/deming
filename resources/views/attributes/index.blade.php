@@ -2,12 +2,20 @@
 
 @section("content")
 <div data-role="panel" data-title-caption="{{ trans('cruds.attribute.index') }}" data-collapsible="false" data-title-icon="<span class='mif-tags'></span>">
+
+    @include('partials.errors')
+
 	<div class="grid">
 		<div class="row">
 			<div class="cell-5">
 			</div>
 			@if (Auth::User()->role==1)
 			<div class="cell-7" align="right">
+				<button class="button warning" onclick="location.href = '/attribute/replace';">
+		            <span class="mif-wrench"></span>
+					{{ trans('common.manage') }}
+				</button>
+				&nbsp;
 				<button class="button primary" onclick="location.href = '/attributes/create';">
 		            <span class="mif-add-lib"></span>
 		            &nbsp;

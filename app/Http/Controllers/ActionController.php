@@ -86,8 +86,8 @@ class ActionController extends Controller
             $actions = $actions->where('actions.scope', $scope);
         }
 
-        // filter on auditee actions
-        if (Auth::user()->isAuditee()) {
+        // filter to the current user's own actions, unless they see all data
+        if (!Auth::user()->seesAllData()) {
             $userId = Auth::id();
             $actions = $actions->where(function($query) use ($userId) {
                 // Actions assignées directement à l'utilisateur
@@ -299,10 +299,10 @@ class ActionController extends Controller
             ->orderBy('id')
             ->get();
 
-        $measures = DB::table('control_measure')
-            ->select('measure_id')
-            ->where('control_id', $id)
-            ->pluck('measure_id')
+        $measures = DB::table('action_control')
+            ->select('control_id')
+            ->where('action_id', $id)
+            ->pluck('control_id')
             ->toArray();
 
         // Get users
@@ -506,7 +506,7 @@ class ActionController extends Controller
         abort_if($action === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
         // delete links
-        DB::table('action_measure')->where('action_id', $action->id)->delete();
+        DB::table('action_control')->where('action_id', $action->id)->delete();
 
         // relete links to owners
         $action->owners()->detach();

@@ -38,4 +38,14 @@ class UserFactory extends Factory
     {
         return $this->state(['role' => User::ROLE_AUDITOR]);
     }
+
+    public function user(): static
+    {
+        return $this->state(['role' => User::ROLE_USER]);
+    }
+
+    public function auditee(): static
+    {
+        return $this->state(['role' => User::ROLE_AUDITEE]);
+    }
 }

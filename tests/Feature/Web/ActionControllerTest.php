@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\Action;
+use App\Models\Control;
 use App\Models\User;
 
 beforeEach(function () {
     $this->admin   = User::factory()->admin()->create();
-    $this->user    = User::factory()->create(['role' => User::ROLE_USER]);
+    $this->user    = User::factory()->user()->create();
     $this->auditor = User::factory()->auditor()->create();
 });
 
@@ -90,6 +91,23 @@ test('admin can edit an action', function () {
 test('auditor can access edit form', function () {
     $action = Action::factory()->create();
     $this->actingAs($this->auditor)->get("/action/edit/{$action->id}")->assertStatus(200);
+});
+
+test('edit form pre-selects only the controls linked to this action', function () {
+    $linkedControl = Control::factory()->create();
+    $otherControl = Control::factory()->create();
+
+    $action = Action::factory()->create();
+    $action->controls()->sync([$linkedControl->id]);
+
+    // Another action links a different control: must not leak into the first action's selection.
+    $otherAction = Action::factory()->create();
+    $otherAction->controls()->sync([$otherControl->id]);
+
+    $this->actingAs($this->admin)
+        ->get("/action/edit/{$action->id}")
+        ->assertStatus(200)
+        ->assertViewHas('measures', [$linkedControl->id]);
 });
 
 test('admin can save an action', function () {

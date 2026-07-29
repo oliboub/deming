@@ -26,7 +26,7 @@
             <div class="cell-lg-2 cell-md-3">
                 <select id="filter-status" data-role="select">
                     <option value="none">-- {{ trans("cruds.risk.fields.choose_status") }} --</option>
-                    @foreach (\App\Models\Risk::STATUS_LABELS as $value => $label)
+                    @foreach (\App\Models\Risk::availableStatuses() as $value => $label)
                         <option value="{{ $value }}" @if(Session::get('risk_status') === $value) selected @endif>
                             {{ trans($label) }}
                         </option>
@@ -78,10 +78,7 @@
     >
         <thead>
             <tr>
-                <th class="sortable-column sort-desc">{{ trans("cruds.risk.fields.score") }}</th>
                 <th class="sortable-column">{{ trans("cruds.risk.fields.name") }}</th>
-
-                <th class="sortable-column">{{ trans("cruds.risk.fields.status") }}</th>
                 <th class="sortable-column">{{ trans("cruds.risk.fields.owner") }}</th>
 
                 @if ($scoringConfig->usesMonarc())
@@ -96,12 +93,40 @@
                     <th class="sortable-column">{{ trans("cruds.risk.fields.probability") }}</th>
                     <th class="sortable-column">{{ trans("cruds.risk.fields.impact") }}</th>
                 @endif
+
+                <th class="sortable-column sort-desc">{{ trans("cruds.risk.fields.score") }}</th>
+
+                <th class="sortable-column">{{ trans("cruds.risk.fields.status") }}</th>
+                @if ($scoringConfig->usesMonarc())
+                    <th class="sortable-column">{{ trans("cruds.risk.fields.residual_risk") }}</th>
+                @endif
                 <th class="sortable-column">{{ trans("cruds.risk.fields.next_review") }}</th>
             </tr>
         </thead>
         <tbody>
         @foreach ($risks as $risk)
         <tr>
+            {{-- Name --}}
+            <td>
+                <span style="display:none">{{ $risk->name }}</span>
+                <a href="/risk/show/{{ $risk->id }}">{{ $risk->name }}</a>
+            </td>
+            {{-- Owner --}}
+            <td>{{ $risk->owner?->name ?? '—' }}</td>
+
+            @if ($scoringConfig->usesMonarc())
+                <td>{{ $risk->impact }}</td>
+                <td>{{ $risk->probability }}</td>
+                <td>{{ $risk->vulnerability }}</td>
+            @elseif ($scoringConfig->usesLikelihood())
+                <td>{{ $risk->risk_likelihood }}</td>
+                <td>{{ $risk->vulnerability }}</td>
+                <td>{{ $risk->impact }}</td>
+            @else
+                <td>{{ $risk->probability }}</td>
+                <td>{{ $risk->impact }}</td>
+            @endif
+
             {{-- Score délégué au modèle Risk --}}
             <td>
                 @php
@@ -120,33 +145,34 @@
                 </span>
                 </a>
             </td>
-            {{-- Name --}}
-            <td>
-                <span style="display:none">{{ $risk->name }}</span>
-                <a href="/risk/show/{{ $risk->id }}">{{ $risk->name }}</a>
-            </td>
+
             {{-- Status --}}
             <td>
                 <span class="badge {{ \App\Models\Risk::STATUS_COLORS[$risk->status] ?? 'secondary' }}">
-                    {{ trans(\App\Models\Risk::STATUS_LABELS[$risk->status] ?? $risk->status) }}
+                    {{ \App\Models\Risk::statusLabel($risk->status) }}
                 </span>
             </td>
-            {{-- Owner --}}
-            <td>{{ $risk->owner?->name ?? '—' }}</td>
-
             @if ($scoringConfig->usesMonarc())
-                <td>{{ $risk->impact }}</td>
-                <td>{{ $risk->probability }}</td>
-                <td>{{ $risk->vulnerability }}</td>
-            @elseif ($scoringConfig->usesLikelihood())
-                <td>{{ $risk->risk_likelihood }}</td>
-                <td>{{ $risk->vulnerability }}</td>
-                <td>{{ $risk->impact }}</td>
-            @else
-                <td>{{ $risk->probability }}</td>
-                <td>{{ $risk->impact }}</td>
+            {{-- Résiduel --}}
+            <td>
+                <span style="display:none">{{ str_pad((string) ($risk->residual_risk ?? 0), 4, '0', STR_PAD_LEFT) }}</span>
+                @if ($risk->residual_risk !== null)
+                    @php
+                        $residualThreshold = $scoringConfig->thresholdFor($risk->residual_risk);
+                    @endphp
+                    <span class="badge"
+                          style="background:{{ $residualThreshold['color'] }};
+                                color:{{ contrast_color($residualThreshold['color']) }};
+                                padding:2px 8px;
+                                font-size:1rem;">
+                        {{ $risk->residual_risk }}
+                    </span>
+                @else
+                    —
+                @endif
+            </td>
             @endif
-
+            {{-- Review date --}}
             <td style="white-space:nowrap">
                 @if ($risk->next_review_at)
                     @if ($risk->is_overdue)
@@ -167,12 +193,22 @@
 
 {{-- Alignemet de la table --}}
 <style>
-#risks-table td:nth-child(3),
+#risks-table td:nth-child(2),
+#risks-table td:nth-child(5),
+#risks-table td:nth-child(6),
 #risks-table td:nth-child(7),
 #risks-table td:nth-child(8),
-#risks-table th:nth-child(3),
+#risks-table td:nth-child(9),
+#risks-table td:nth-child(10),
+
+#risks-table th:nth-child(2),
+#risks-table th:nth-child(5),
+#risks-table th:nth-child(6),
 #risks-table th:nth-child(7),
-#risks-table th:nth-child(8) {
+#risks-table th:nth-child(8),
+#risks-table th:nth-child(9),
+#risks-table th:nth-child(10)
+{
     text-align: center !important;
 }
 </style>

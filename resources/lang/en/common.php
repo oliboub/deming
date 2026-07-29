@@ -16,6 +16,7 @@ return [
     'history' => 'History',
     'import' => 'Import',
     'make' => 'Make',
+    'manage' => 'Manage',
     'new' => 'New',
     'plan' => 'Plan',
     'reject' => 'Reject',
@@ -51,5 +52,8 @@ return [
     'day' => 'Daily',
     'week' => 'Weekly',
     'month' => 'Monthly',
-    'months' => 'Months'
+    'months' => 'Months',
+
+    'my_data' => 'My data',
+    'all_data' => 'All data',
 ];

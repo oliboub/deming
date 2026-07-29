@@ -86,7 +86,7 @@
 		    </div>
 	    	<div class="row">
 	    		<div class="cell-8">
-				    <table class="table striped row-hover cell-border row-border"
+				    <table id="user-controls-table" class="table striped row-hover cell-border row-border"
 				       data-role="table"
 				       data-rows="25"
 				       data-show-activity="true"

@@ -5,10 +5,10 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-DROP TABLE IF EXISTS `action_measure`;
+DROP TABLE IF EXISTS `action_control`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `action_measure` (
+CREATE TABLE `action_control` (
   `action_id` int(10) unsigned NOT NULL,
   `control_id` int(10) unsigned NOT NULL,
   KEY `action_measure_action_id_foreign` (`action_id`),
@@ -117,30 +117,6 @@ CREATE TABLE `control_risk` (
   CONSTRAINT `control_risk_risk_id_foreign` FOREIGN KEY (`risk_id`) REFERENCES `risks` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `control_user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `control_user` (
-  `measure_id` int(10) unsigned NOT NULL,
-  `user_id` bigint(20) unsigned NOT NULL,
-  KEY `control_id_fk_5920381` (`measure_id`),
-  KEY `user_id_fk_5837573` (`user_id`),
-  CONSTRAINT `control_id_fk_49294573` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `user_id_fk_304958543` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `control_user_group`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `control_user_group` (
-  `measure_id` int(10) unsigned NOT NULL,
-  `user_group_id` int(10) unsigned NOT NULL,
-  KEY `control_user_group_control_id_foreign` (`measure_id`),
-  KEY `control_user_group_user_group_id_foreign` (`user_group_id`),
-  CONSTRAINT `control_user_group_control_id_foreign` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`),
-  CONSTRAINT `control_user_group_user_group_id_foreign` FOREIGN KEY (`user_group_id`) REFERENCES `user_groups` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `controls`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -224,6 +200,30 @@ CREATE TABLE `exceptions` (
   CONSTRAINT `exceptions_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `exceptions_measure_id_foreign` FOREIGN KEY (`control_id`) REFERENCES `controls` (`id`) ON DELETE SET NULL,
   CONSTRAINT `exceptions_submitted_by_foreign` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `measure_user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `measure_user` (
+  `measure_id` int(10) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  KEY `control_id_fk_5920381` (`measure_id`),
+  KEY `user_id_fk_5837573` (`user_id`),
+  CONSTRAINT `control_id_fk_49294573` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `user_id_fk_304958543` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `measure_user_group`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `measure_user_group` (
+  `measure_id` int(10) unsigned NOT NULL,
+  `user_group_id` int(10) unsigned NOT NULL,
+  KEY `control_user_group_control_id_foreign` (`measure_id`),
+  KEY `control_user_group_user_group_id_foreign` (`user_group_id`),
+  CONSTRAINT `control_user_group_control_id_foreign` FOREIGN KEY (`measure_id`) REFERENCES `measures` (`id`),
+  CONSTRAINT `control_user_group_user_group_id_foreign` FOREIGN KEY (`user_group_id`) REFERENCES `user_groups` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `measures`;
@@ -528,3 +528,6 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (83,'2026_04_23_160
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (84,'2026_05_21_000001_swap_measures_controls_tables',9);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (85,'2026_05_21_000002_fix_control_measure_foreign_keys',10);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (86,'2026_06_09_000001_replace_measure_risk_with_control_risk',11);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (89,'2026_06_11_000001_add_monarc_scoring_config',12);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (90,'2026_06_30_000001_rename_control_user_to_measure_user',13);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (91,'2026_07_29_000001_rename_action_measure_to_action_control',14);

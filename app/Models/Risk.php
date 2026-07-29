@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $impact_comment
  * @property int|null $exposure            Utilisé par formule : likelihood_x_impact
  * @property int|null $vulnerability       Utilisé par formule : likelihood_x_impact
+ * @property int|null $residual_risk       Risque résiduel saisi manuellement
  * @property string $status
  * @property string|null $status_comment
  * @property int $review_frequency    (mois)
@@ -75,6 +76,19 @@ class Risk extends Model
         self::STATUS_AVOIDED => 'dark',
     ];
 
+    /**
+     * Traitements MONARC : réutilisent les clés de Risk::status existantes,
+     * seuls les libellés changent (temporarily_accepted et avoided n'ont pas
+     * d'équivalent MONARC et sont donc exclus de ce mapping).
+     */
+    const STATUS_MONARC = [
+        self::STATUS_NOT_EVALUATED => 'cruds.risk.status_monarc.not_treated',
+        self::STATUS_MITIGATED => 'cruds.risk.status_monarc.reduction',
+        self::STATUS_NOT_ACCEPTED => 'cruds.risk.status_monarc.denied',
+        self::STATUS_ACCEPTED => 'cruds.risk.status_monarc.accepted',
+        self::STATUS_TRANSFERRED => 'cruds.risk.status_monarc.shared',
+    ];
+
     // -------------------------------------------------------------------------
     // Fillable / Casts
     // -------------------------------------------------------------------------
@@ -83,7 +97,7 @@ class Risk extends Model
         'name', 'description', 'owner_id',
         'probability', 'probability_comment',
         'impact', 'impact_comment',
-        'exposure', 'vulnerability',
+        'exposure', 'vulnerability', 'residual_risk',
         'status', 'status_comment',
         'review_frequency', 'next_review_at',
     ];
@@ -94,6 +108,7 @@ class Risk extends Model
         'impact' => 'integer',
         'exposure' => 'integer',
         'vulnerability' => 'integer',
+        'residual_risk' => 'integer',
     ];
 
     // -------------------------------------------------------------------------
@@ -184,7 +199,37 @@ class Risk extends Model
     /** Libellé traduit du statut courant (cf. Exception::getStatusLabelAttribute) */
     public function getStatusLabelAttribute(): string
     {
-        return trans(self::STATUS_LABELS[$this->status]);
+        return self::statusLabel($this->status);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mode MONARC — Risk.status réutilisé comme traitement MONARC
+    // -------------------------------------------------------------------------
+
+    /**
+     * Indique si la configuration de scoring active utilise la formule MONARC.
+     * Accès null-safe : ne lève jamais d'exception si aucune configuration
+     * n'est active (contrairement à RiskScoringConfig::active()).
+     */
+    public static function monarcMode(): bool
+    {
+        return RiskScoringConfig::where('is_active', true)->value('formula') === 'monarc';
+    }
+
+    /** Statuts à proposer au sélecteur : les 5 traitements MONARC si actif, sinon les 7 statuts Deming. */
+    public static function availableStatuses(): array
+    {
+        return self::monarcMode() ? self::STATUS_MONARC : self::STATUS_LABELS;
+    }
+
+    /** Libellé traduit d'un statut, adapté au mode MONARC si actif (fallback Deming sinon). */
+    public static function statusLabel(string $status): string
+    {
+        if (self::monarcMode() && array_key_exists($status, self::STATUS_MONARC)) {
+            return trans(self::STATUS_MONARC[$status]);
+        }
+
+        return trans(self::STATUS_LABELS[$status] ?? $status);
     }
 
     // -------------------------------------------------------------------------

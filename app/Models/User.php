@@ -154,4 +154,18 @@ class User extends Authenticatable implements OAuthenticatable
         return $this->role === self::ROLE_AUDITEE;
     }
 
+    /**
+     * Whether this user sees data across all users, or only their own.
+     * Sole authority for this decision: the admin/user's session preference is
+     * only honored after re-checking the role here, never trusted alone.
+     */
+    public function seesAllData(): bool
+    {
+        if ($this->isAdmin() || $this->isUser()) {
+            return (bool) session('group_view', true);
+        }
+
+        return $this->isAuditor() || $this->isAPI();
+    }
+
 }

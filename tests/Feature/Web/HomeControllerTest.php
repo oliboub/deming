@@ -13,13 +13,13 @@ test('admin can access dashboard', function () {
 });
 
 test('user can access dashboard', function () {
-    $this->actingAs(User::factory()->create(['role' => User::ROLE_USER]))
+    $this->actingAs(User::factory()->user()->create())
         ->get('/')
         ->assertStatus(200);
 });
 
 test('auditor can access dashboard', function () {
-    $this->actingAs(User::factory()->create(['role' => User::ROLE_AUDITOR]))
+    $this->actingAs(User::factory()->auditor()->create())
         ->get('/')
         ->assertStatus(200);
 });

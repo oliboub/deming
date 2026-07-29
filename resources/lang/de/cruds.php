@@ -64,7 +64,13 @@ return [
         'show' => 'Attribut',
         'index' => 'Liste der Attribute',
         'choose' => 'Wähle ein Attribut',
-        'title' => 'Attribute'
+        'title' => 'Attribute',
+        'replace' => [
+            'title' => 'Attribute verwalten',
+            'old_value' => 'Bestehender Wert',
+            'new_value' => 'Neuer Wert',
+            'success' => 'Der Wert ":old" wurde in allen Maßnahmen, Kontrollen und Attributen durch ":new" ersetzt.',
+        ],
     ],
      'measure' => [
          'description' => '',
@@ -383,6 +389,7 @@ return [
             'vulnerability' => 'Verwundbarkeit',
             'likelihood' => 'Eintrittswahrscheinlichkeit',
             'score' => 'Punktzahl',
+            'residual_risk' => 'Restrisiko',
 
             // Behandlung
             'status' => 'Behandlungsstatus',
@@ -390,7 +397,7 @@ return [
             'controls' => 'Verknüpfte Kontrollen',
             'controls_hint' => 'Erforderlich bei Status = Gemindert',
             'action_plan' => 'Verknüpfte Aktionspläne',
-            'actions_hint' => 'Erforderlich bei Status = Nicht akzeptiert',
+            'actions_hint' => 'Erforderlich bei Status = Nicht akzeptiert (optional bei Minderung im MONARC-Modus)',
 
             // Planung
             'review_frequency' => 'Üprf.-Häufgkt.',
@@ -414,6 +421,15 @@ return [
             'mitigated' => 'Gemindert',
             'transferred' => 'Übertragen',
             'avoided' => 'Vermieden',
+        ],
+
+        // MONARC-Behandlungen (nutzen die obigen 'status'-Schlüssel)
+        'status_monarc' => [
+            'not_treated' => 'Nicht behandelt',
+            'reduction' => 'Reduzierung',
+            'denied' => 'Abgelehnt',
+            'accepted' => 'Akzeptiert',
+            'shared' => 'Geteilt',
         ],
     ],
 

@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -40,7 +41,7 @@ class RiskController extends Controller
             $query->ownedBy($user->id);
         }
 
-        if ($request->filled('status') && array_key_exists($request->status, Risk::STATUS_LABELS)) {
+        if ($request->filled('status') && array_key_exists($request->status, Risk::availableStatuses())) {
             $query->byStatus($request->status);
         }
 
@@ -100,7 +101,7 @@ class RiskController extends Controller
         $users         = User::query()->orderBy('name')->get();
         $controls      = Control::query()->orderBy('name')->get();
         $actions       = Action::query()->orderBy('name')->get();
-        $statuses      = Risk::STATUS_LABELS;
+        $statuses      = Risk::availableStatuses();
         $scoringConfig = $this->scoringService->config();
 
         return view('risks.create',
@@ -151,7 +152,7 @@ class RiskController extends Controller
         $users    = User::query()->orderBy('name')->get();
         $controls = Control::query()->orderBy('name')->get();
         $actions  = Action::query()->orderBy('name')->get();
-        $statuses = Risk::STATUS_LABELS;
+        $statuses = Risk::availableStatuses();
         $scoringConfig = $this->scoringService->config();
 
         $risk->load(['controls', 'actions']);
@@ -204,7 +205,7 @@ class RiskController extends Controller
     {
         $query = Risk::with('owner');
 
-        if ($request->filled('status') && array_key_exists($request->status, Risk::STATUS_LABELS)) {
+        if ($request->filled('status') && array_key_exists($request->status, Risk::availableStatuses())) {
             $query->byStatus($request->status);
         }
 
@@ -284,7 +285,8 @@ class RiskController extends Controller
             'impact_comment'      => ['nullable', 'string'],
             'exposure'            => ['nullable', 'integer', 'min:0', 'max:9'],
             'vulnerability'       => ['nullable', 'integer', 'min:0', 'max:9'],
-            'status'              => ['required', 'in:' . implode(',', array_keys(Risk::STATUS_LABELS))],
+            'residual_risk'       => ['nullable', 'integer', 'min:0'],
+            'status'              => ['required', Rule::in(array_keys(Risk::availableStatuses()))],
             'status_comment'      => ['nullable', 'string'],
             'review_frequency'    => ['required', 'integer', 'min:1', 'max:60'],
             'next_review_at'      => ['nullable', 'date'],
@@ -301,7 +303,7 @@ class RiskController extends Controller
                 $data[$field] = (int) $data[$field];
             }
         }
-        foreach (['exposure', 'vulnerability', 'owner_id'] as $field) {
+        foreach (['exposure', 'vulnerability', 'residual_risk', 'owner_id'] as $field) {
             if (isset($data[$field])) {
                 $data[$field] = (int) $data[$field];
             }

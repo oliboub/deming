@@ -32,7 +32,7 @@
     		@if (Auth::User()->role==1)
     	    <form action="/attributes/{{ $attribute->id }}/edit">
     	    	<button class="button primary" type="submit">
-    	            <span class="mif-wrench"></span>
+    	            <span class="mif-pencil"></span>
     	            &nbsp;
     	    		{{ trans('common.edit') }}
     	    	</button>

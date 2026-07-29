@@ -63,7 +63,13 @@ return [
         'show' => 'Attribute',
         'index' => 'List of attributes',
         'choose' => 'Choose an attribute',
-        'title' => 'Attribute'
+        'title' => 'Attribute',
+        'replace' => [
+            'title' => 'Manage attributes',
+            'old_value' => 'Existing value',
+            'new_value' => 'New value',
+            'success' => 'Value ":old" has been replaced by ":new" in all measures, controls and attributes.',
+        ],
     ],
      'measure' => [
          'description' => '',
@@ -383,6 +389,7 @@ return [
             'vulnerability'       => 'Vulnerability',
             'likelihood'          => 'Likelihood',
             'score'               => 'Score',
+            'residual_risk'       => 'Residual risk',
 
             // Treatment
             'status'              => 'Treatment status',
@@ -390,7 +397,7 @@ return [
             'controls'            => 'Linked controls',
             'controls_hint'       => 'Required when status = Mitigated',
             'action_plan'         => 'Linked action plans',
-            'actions_hint'        => 'Required when status = Not accepted',
+            'actions_hint'        => 'Required when status = Not accepted (optional for Reduction in MONARC mode)',
 
             // Planning
             'review_frequency'    => 'Review frequency',
@@ -414,6 +421,15 @@ return [
             'mitigated'            => 'Mitigated',
             'transferred'          => 'Transferred',
             'avoided'              => 'Avoided',
+        ],
+
+        // MONARC treatments (reuse the 'status' keys above)
+        'status_monarc' => [
+            'not_treated' => 'Not treated',
+            'reduction'   => 'Reduction',
+            'denied'      => 'Denied',
+            'accepted'    => 'Accepted',
+            'shared'      => 'Shared',
         ],
     ],
 

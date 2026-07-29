@@ -92,9 +92,9 @@ class DocumentController extends Controller
         // Document not found
         abort_if($document === null, Response::HTTP_NOT_FOUND, '404 Not Found');
 
-        // Auditee may get documents from assigned measures only
+        // May get documents from assigned measures only, unless seeing all data
         abort_if(
-            (Auth::user()->role === 5) &&
+            (!Auth::user()->seesAllData()) &&
             ! DB::table('measure_user')
                 ->where('user_id', Auth::user()->id)
                 ->where('measure_id', $document->measure_id)
@@ -132,9 +132,9 @@ class DocumentController extends Controller
         // Get Measure (audit instance)
         $measure_id = $request->get('control');
 
-        // Auditee may save document to assigned measure only
+        // May save document to assigned measure only, unless seeing all data
         abort_if(
-            Auth::user()->role === 5 &&
+            !Auth::user()->seesAllData() &&
             ! (DB::table('measure_user')
                     ->where('measure_id', $measure_id)
                     ->where('user_id', Auth::user()->id)
@@ -217,10 +217,10 @@ class DocumentController extends Controller
                 );
         }
 
-        // Auditee may delete documents from assigned measures
-        // when measure has not been made
+        // May delete documents from assigned measures when not yet realised,
+        // unless seeing all data
         abort_if(
-            (Auth::user()->role === 5) &&
+            (!Auth::user()->seesAllData()) &&
             ! DB::table('measure_user')
                 ->where('user_id', Auth::user()->id)
                 ->where('measure_id', $document->measure_id)
