@@ -10,6 +10,7 @@ beforeEach(function () {
     $this->admin   = User::factory()->admin()->create();
     $this->user    = User::factory()->user()->create();
     $this->auditor = User::factory()->auditor()->create();
+    RiskScoringConfig::clearCache();
     $this->seed(RiskScoringConfigSeeder::class);
 
 });
@@ -303,6 +304,67 @@ test('MONARC actif : update rejette un statut hors MONARC forgé', function () {
         ->assertSessionHasErrors('status');
 
     expect($risk->fresh()->status)->toBe(Risk::STATUS_TRANSFERRED);
+});
+
+// ---------------------------------------------------------------------------
+// Réduction MONARC ↔ Plan d'action
+// ---------------------------------------------------------------------------
+
+test('hors MONARC : la section plans d\'action est masquée pour un risque mitigé', function () {
+    $risk = Risk::factory()->create(['status' => Risk::STATUS_MITIGATED]);
+
+    $this->actingAs($this->admin)->get("/risk/edit/{$risk->id}")
+        ->assertOk()
+        ->assertSee('id="actions-section"  style="display:none"', false);
+});
+
+test('MONARC actif : la section plans d\'action est visible pour un risque en réduction', function () {
+    activateMonarcScoringConfig();
+    $risk = Risk::factory()->create(['status' => Risk::STATUS_MITIGATED]);
+
+    $this->actingAs($this->admin)->get("/risk/edit/{$risk->id}")
+        ->assertOk()
+        ->assertDontSee('id="actions-section"  style="display:none"', false);
+});
+
+test('MONARC actif : un risque en réduction peut être lié à un plan d\'action', function () {
+    activateMonarcScoringConfig();
+    $action = \App\Models\Action::factory()->create();
+    $risk = Risk::factory()->create(['status' => Risk::STATUS_MITIGATED]);
+
+    $this->actingAs($this->admin)
+        ->post('/risk/save', [
+            'id'               => $risk->id,
+            'name'             => $risk->name,
+            'probability'      => 2,
+            'impact'           => 3,
+            'vulnerability'    => 1,
+            'status'           => Risk::STATUS_MITIGATED,
+            'review_frequency' => 12,
+            'action_ids'       => [$action->id],
+        ])
+        ->assertRedirect();
+
+    expect($risk->fresh()->actions)->toHaveCount(1);
+    expect($risk->fresh()->actions->first()->id)->toBe($action->id);
+});
+
+test('MONARC actif : un risque en réduction sans plan d\'action ne déclenche pas d\'avertissement', function () {
+    activateMonarcScoringConfig();
+    $control = Control::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->post('/risk/store', [
+            'name'             => 'Réduction sans plan d\'action',
+            'probability'      => 2,
+            'impact'           => 3,
+            'vulnerability'    => 1,
+            'status'           => Risk::STATUS_MITIGATED,
+            'review_frequency' => 12,
+            'control_ids'      => [$control->id],
+        ])
+        ->assertRedirect()
+        ->assertSessionMissing('warning');
 });
 
 // ---------------------------------------------------------------------------

@@ -397,7 +397,7 @@ return [
             'controls'            => 'Linked controls',
             'controls_hint'       => 'Required when status = Mitigated',
             'action_plan'         => 'Linked action plans',
-            'actions_hint'        => 'Required when status = Not accepted',
+            'actions_hint'        => 'Required when status = Not accepted (optional for Reduction in MONARC mode)',
 
             // Planning
             'review_frequency'    => 'Review frequency',

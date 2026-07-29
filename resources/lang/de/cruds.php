@@ -397,7 +397,7 @@ return [
             'controls' => 'Verknüpfte Kontrollen',
             'controls_hint' => 'Erforderlich bei Status = Gemindert',
             'action_plan' => 'Verknüpfte Aktionspläne',
-            'actions_hint' => 'Erforderlich bei Status = Nicht akzeptiert',
+            'actions_hint' => 'Erforderlich bei Status = Nicht akzeptiert (optional bei Minderung im MONARC-Modus)',
 
             // Planung
             'review_frequency' => 'Üprf.-Häufgkt.',

@@ -396,7 +396,7 @@ return [
             'controls'            => 'Mesures liées',
             'controls_hint'       => 'Mesure nécessaire si statut = Mitigé',
             'action_plan'         => 'Plans d\'action liés',
-            'actions_hint'        => 'Requis si statut = Non accepté',
+            'actions_hint'        => 'Requis si statut = Non accepté (facultatif pour Réduction en mode MONARC)',
 
             // Planification
             'review_frequency'    => 'Fréquence de revue',
