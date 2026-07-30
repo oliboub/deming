@@ -8,6 +8,7 @@ This document contains the evolutions planned in 2026
 * [x] Risks register : https://github.com/sourcentis/deming/discussions/562
 * [x] Security exceptions : https://github.com/sourcentis/deming/issues/590
 * [x] Non-regression tests and code quality checks
+* [ ] Restrict user access based on specific domains
 * [ ] Export set of controls for audit
 * [ ] ISMS Report customization
 * [ ] Configurable control scoring system
