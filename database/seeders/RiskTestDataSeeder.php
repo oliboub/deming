@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Action;
 use App\Models\Exception;
 use App\Models\Risk;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -23,6 +24,8 @@ class RiskTestDataSeeder extends Seeder
     public function run(string $locale = 'fr'): void
     {
         $this->locale = in_array($locale, ['fr', 'en'], true) ? $locale : 'fr';
+
+        $this->ensureUsers();
 
         $this->wipe();
 
@@ -56,6 +59,40 @@ class RiskTestDataSeeder extends Seeder
         $actions['cloud']->owners()->sync([2]);
         $actions['rgpd']->owners()->sync([5]);
         $actions['pra']->owners()->sync([1, 6]);
+    }
+
+    /**
+     * Les jeux de données ci-dessous référencent des utilisateurs par id fixe
+     * (owner_id, created_by, approved_by, ...). Sur une base fraîchement
+     * installée, seul l'administrateur (id 1) existe : on crée ici les
+     * utilisateurs de démonstration manquants avec ces mêmes id.
+     */
+    private function ensureUsers(): void
+    {
+        $demoUsers = [
+            2 => ['login' => 'alice.martin@example.local', 'name' => 'Alice Martin', 'title' => 'Risk Owner'],
+            5 => ['login' => 'claire.dubois@example.local', 'name' => 'Claire Dubois', 'title' => 'Compliance Officer'],
+            6 => ['login' => 'benoit.leroy@example.local', 'name' => 'Benoit Leroy', 'title' => 'IT Operations Manager'],
+        ];
+
+        foreach ($demoUsers as $id => $attributes) {
+            if (DB::table('users')->where('id', $id)->exists()) {
+                continue;
+            }
+
+            DB::table('users')->insert([
+                'id' => $id,
+                'login' => $attributes['login'],
+                'name' => $attributes['name'],
+                'title' => $attributes['title'],
+                'role' => User::ROLE_USER,
+                'language' => $this->locale,
+                'email' => $attributes['login'],
+                'password' => bcrypt('password'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
     private function wipe(): void
