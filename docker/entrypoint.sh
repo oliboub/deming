@@ -58,10 +58,10 @@ service cron start || true
 # Copier le vhost nginx
 rm -f /etc/nginx/sites-enabled/default
 
+echo "✅ Deming initialization complete — starting services"
+
 # Démarrer artisan serve en arrière-plan (port 8000 — cible du reverse proxy nginx)
 php artisan serve --host 0.0.0.0 --port 8000 &
 
 # Nginx en PID 1
 exec nginx -g "daemon off;"
-
-echo "✅ Deming initialization complete — starting services"

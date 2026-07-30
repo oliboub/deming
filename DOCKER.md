@@ -59,7 +59,7 @@ The stack is composed of two services orchestrated by Docker Compose:
 
 | Service | Role | Image |
 |---|---|---|
-| `deming` | Nginx (reverse proxy) + Laravel (`artisan serve`) | Debian + PHP 8.3 |
+| `deming` | Nginx (reverse proxy) + Laravel (`artisan serve`) | Debian + PHP 8.4 |
 | `mysql` | Database | MySQL 9.5 |
 
 **Important:** The web layer is **nginx → `php artisan serve`**, not nginx → php-fpm.
@@ -158,9 +158,9 @@ docker compose build --no-cache deming
 
 ### What the build does
 
-1. Starts from a Debian Bookworm + PHP 8.3 base image
+1. Starts from a Debian Bookworm + PHP 8.4 base image
 2. Installs Nginx, required PHP extensions, and Composer
-3. Clones the Deming repository into `/var/www/deming`
+3. Copies the project source (build context, i.e. your local working tree) into `/var/www/deming`
 4. Copies the Nginx vhost (`docker/deming.conf`) to `/etc/nginx/conf.d/deming.conf`
 5. Copies initialization scripts (`entrypoint.sh`, `initialdb.sh`, etc.) to `/etc/`
 6. Installs PHP dependencies via Composer
@@ -498,7 +498,7 @@ docker compose exec mysql \
 
 ```yaml
 # Remove from docker-compose.yml environment after first successful start:
-# - INITIAL_DB
+# - RESET_DB
 # - UPLOAD_DB_ISO27001
 # - USE_DEMO_DATA
 # - DB_SLEEP

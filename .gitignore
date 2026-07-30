@@ -1,6 +1,9 @@
 # Laravel / Dependencies
 /vendor
 .env
+.env.*
+!.env.example
+!.env.ci
 /public/.htaccess
 /storage
 storage/*.key
