@@ -2,12 +2,22 @@
 
 ## Recommended configuration
 
-- OS : Ubuntu 24.04.1 LTS
+- OS : Debian 12 (stable) — recommended. Also tested on Ubuntu 24.04 LTS and RedHat-family distributions (RHEL, Rocky Linux, AlmaLinux 9).
 - RAM : 2G
-- Disk : 30G
+- Disk : 20G
 - VCPU 2
 
 ## Installation
+
+If you install Debian from scratch, a minimal profile is enough:
+- without the Debian desktop environment
+- with the Web server task
+- with the SSH server task
+- with standard system utilities
+
+Note: a minimal Debian install does not include `sudo` by default. Either install it first as root
+(`apt install sudo` then add your user to the `sudo` group), or replace `sudo` with `su -c "..."` in
+the commands below.
 
 Update linux distribution
 
@@ -16,6 +26,14 @@ Update linux distribution
 Install Apache, git, php and composer
 
     sudo apt-get install git composer apache2 php-fpm php php-cli php-opcache php-mysql php-zip php-gd php-mbstring php-curl php-xml -y
+
+On RedHat-family distributions (RHEL, Rocky Linux, AlmaLinux), use `dnf` instead of `apt-get` and
+adapt package names accordingly, e.g.:
+
+    sudo dnf install git composer httpd php-fpm php-cli php-opcache php-mysqlnd php-pdo php-gd php-mbstring php-curl php-xml -y
+
+The rest of this guide uses Debian/Ubuntu (`apt`) commands and Apache directory paths; adjust them
+for `httpd` on RedHat-family systems.
 
 Create the project directory
 
@@ -38,7 +56,7 @@ Install packages with composer :
 
 ## Database
 
-Install MariaDB (works also with ProgresSQL and MySQL)
+Install MariaDB (works also with PostgreSQL and MySQL)
 
     sudo apt install mariadb-server
 
@@ -68,7 +86,7 @@ Set database connection parameters :
     vi .env
 
     ## .env file
-    DB_CONNECTION=mariadb
+    DB_CONNECTION=mysql
     DB_HOST=127.0.0.1
     DB_PORT=3306
     DB_DATABASE=deming
@@ -80,7 +98,7 @@ Set database connection parameters :
 
 Run migrations
 
-    php artisan migrate --seed
+    LANG=en php artisan migrate --seed
 
 Note: the seed is important (--seed), as it will create the first administrator user for you.
 
@@ -98,12 +116,14 @@ Create storage link
 
 Import attributes
 
-    php artisan db:seed --class=AttributeSeeder
+    LANG=en php artisan db:seed --class=AttributeSeeder
 
 Then populate the database with 27001:2022 and generated tests data
 
     php artisan deming:import-framework ./storage/app/repository/ISO27001-2022.en.xlsx --clean
-    php artisan deming:generate-tests
+    php artisan deming:generate-tests --locale=en
+
+The `--locale` option accepts `en` or `fr` and controls the language of the generated test data (risks, action plans, exceptions, audit observations). If omitted, it is guessed from the `LANG` environment variable, defaulting to `en`.
 
 ## Start application with PHP
 
@@ -177,14 +197,14 @@ Add the following lines:
     CustomLog ${APACHE_LOG_DIR}/access.log combined
     </VirtualHost>
 
-Save and close the file when finished. Next, activate the Apache virtual host and rewrite module with the following commands:
+Save and close the file when finished. Next, activate the Apache virtual host and rewrite module with the following commands (replace `8.2` with your installed PHP version — `php -v` — e.g. `8.3` on Ubuntu 24.04):
 
     sudo a2enmod rewrite
     sudo a2dissite 000-default.conf
     sudo a2ensite deming.conf
-    sudo a2dismod php8.3
+    sudo a2dismod php8.2
     sudo a2enmod proxy_fcgi setenvif
-    sudo a2enconf php8.3-fpm
+    sudo a2enconf php8.2-fpm
 
 Finally, restart the Apache service to activate the changes:
 
@@ -219,9 +239,9 @@ and add the following content:
 	    ProxyPassReverse / http://127.0.0.1:8000/
 	    ProxyPreserveHost On
 
- 	    # If you user php-fpm adapt the socket's path below and uncomment
+ 	    # If you use php-fpm, adapt the socket's path (PHP version) below and uncomment
 	    #<FilesMatch \.php$>
-	    #    SetHandler "proxy:unix:/var/run/php/php8.3-fpm.sock|fcgi://localhost/"
+	    #    SetHandler "proxy:unix:/var/run/php/php8.2-fpm.sock|fcgi://localhost/"
 	    #</FilesMatch>
 
     	    ErrorLog ${APACHE_LOG_DIR}/error.log
@@ -245,7 +265,7 @@ and add the following content:
 ## PHP
 
 You need to set the value of upload_max_filesize and post_max_size in your php.ini
-(/etc/php/8.3/fpm/php.ini) :
+(/etc/php/8.2/fpm/php.ini — adjust the version to match `php -v`) :
 
     ; Maximum allowed size for uploaded files.
     upload_max_filesize = 10M
@@ -480,11 +500,11 @@ To start from an empty database with the ISO 27001:2022 standard.
 
 Here's the command to recreate the DB:
 
-    php artisan migrate:fresh --seed
+    LANG=en php artisan migrate:fresh --seed
 
 Import attributes
 
-    php artisan db:seed --class=AttributeSeeder
+    LANG=en php artisan db:seed --class=AttributeSeeder
 
 Then to populate the database with 27001:2022
 

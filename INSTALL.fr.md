@@ -2,12 +2,22 @@
 
 ## Configuration recommandée
 
-- OS : Ubuntu 24.04.1 LTS
+- OS : Debian 12 (stable) — recommandé. Également testé sur Ubuntu 24.04 LTS et les distributions de la famille RedHat (RHEL, Rocky Linux, AlmaLinux 9).
 - RAM : 2G
-- Disque : 30G
+- Disque : 20G
 - VCPU 2
 
 ## Installation
+
+Si vous installez Debian à partir de zéro, un profil minimal suffit :
+- sans environnement de bureau Debian
+- avec la tâche « serveur Web »
+- avec la tâche « serveur SSH »
+- avec les utilitaires système usuels
+
+Remarque : une installation Debian minimale n'inclut pas `sudo` par défaut. Installez-le d'abord en
+tant que root (`apt install sudo` puis ajoutez votre utilisateur au groupe `sudo`), ou remplacez
+`sudo` par `su -c "..."` dans les commandes ci-dessous.
 
 Mettre à jour la distribution linux
 
@@ -15,7 +25,15 @@ Mettre à jour la distribution linux
 
 Installer Apache, git, php et composer
 
-    sudo apt-get install git composer apache2 libapache2-mod-php php php-cli php-opcache php-mysql php-zip php-gd php-mbstring php-curl php-xml -y
+    sudo apt-get install git composer apache2 php-fpm php php-cli php-opcache php-mysql php-zip php-gd php-mbstring php-curl php-xml -y
+
+Sur les distributions de la famille RedHat (RHEL, Rocky Linux, AlmaLinux), utilisez `dnf` à la place
+de `apt-get` et adaptez les noms de paquets en conséquence, par exemple :
+
+    sudo dnf install git composer httpd php-fpm php-cli php-opcache php-mysqlnd php-pdo php-gd php-mbstring php-curl php-xml -y
+
+La suite de ce guide utilise les commandes Debian/Ubuntu (`apt`) et les chemins d'Apache ; adaptez-les
+pour `httpd` sur les systèmes de la famille RedHat.
 
 Créer le répertoire du projet
 
@@ -108,7 +126,9 @@ Pour importer la base de données avec les attributs de sécurité de la norme 2
 Peupler la base de données avec la norme ISO 27001:2022 et générer un jeu de tests (optionel)
 
     php artisan deming:import-framework ./storage/app/repository/ISO27001-2022.fr.xlsx --clean
-    php artisan deming:generate-tests
+    php artisan deming:generate-tests --locale=fr
+
+L'option `--locale` accepte `fr` ou `en` et détermine la langue des données de test générées (risques, plans d'action, exceptions, observations d'audit). Si elle est omise, la langue est déduite de la variable d'environnement `LANG`, avec l'anglais par défaut.
 
 ## Démarrer l'application avec PHP
 
@@ -182,14 +202,14 @@ Ajouter les lignes suivantes :
     CustomLog ${APACHE_LOG_DIR}/access.log combined
     </VirtualHost>
 
-Enregistrez et fermez le fichier lorsque vous avez terminé. Ensuite, activez l'hôte virtuel Apache et le module de réécriture avec les commandes suivantes :
+Enregistrez et fermez le fichier lorsque vous avez terminé. Ensuite, activez l'hôte virtuel Apache et le module de réécriture avec les commandes suivantes (remplacez `8.2` par votre version de PHP installée — `php -v` — par exemple `8.3` sur Ubuntu 24.04) :
 
     sudo a2enmod rewrite
     sudo a2dissite 000-default.conf
     sudo a2ensite deming.conf
-    sudo a2dismod php8.3
+    sudo a2dismod php8.2
     sudo a2enmod proxy_fcgi setenvif
-    sudo a2enconf php8.3-fpm
+    sudo a2enconf php8.2-fpm
 
 Enfin, redémarrez le service Apache pour activer les modifications :
 
@@ -224,9 +244,9 @@ Ajouter les lignes suivantes :
 	    ProxyPassReverse / http://127.0.0.1:8000/
 	    ProxyPreserveHost On
 
- 	    # Si vous utilisez php-fpm (chemin de la socket à adapter à votre cas)
+ 	    # Si vous utilisez php-fpm (chemin de la socket et version PHP à adapter à votre cas)
 	    #<FilesMatch \.php$>
-	    #    SetHandler "proxy:unix:/var/run/php/php8.3-fpm.sock|fcgi://localhost/"
+	    #    SetHandler "proxy:unix:/var/run/php/php8.2-fpm.sock|fcgi://localhost/"
 	    #</FilesMatch>
 
     	    ErrorLog ${APACHE_LOG_DIR}/error.log
@@ -252,7 +272,7 @@ Dans le cadre de cette configuration servant l'application en HTTPS, il pourra �
 ## PHP
 
 Vous devez définir les valeurs de upload_max_filesize et post_max_size dans votre php.ini
-(/etc/php/8.3/fpm/php.ini) :
+(/etc/php/8.2/fpm/php.ini — adaptez la version à `php -v`) :
 
     ; Taille maximale autorisée pour les fichiers téléchargés.
     upload_max_filesize = 10M
@@ -478,11 +498,11 @@ Pour repartir d'une base de données vide avec la norme ISO 27001:2022.
 
 Voici la commande pour recréer la DB :
 
-    php artisan migrate:fresh --seed
+    LANG=fr php artisan migrate:fresh --seed
 
 Puis importer les attributs
 
-    php artisan db:seed --class=AttributeSeeder
+    LANG=fr php artisan db:seed --class=AttributeSeeder
 
 Peupler la base de données avec la norme ISO 27001:2022
 
