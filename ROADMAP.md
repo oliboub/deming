@@ -7,9 +7,9 @@ This document contains the evolutions planned in 2026
 * [x] Dashboard for auditees : https://github.com/sourcentis/deming/discussions/556
 * [x] Risks register : https://github.com/sourcentis/deming/discussions/562
 * [x] Security exceptions : https://github.com/sourcentis/deming/issues/590
-* [x] Non-regression tests
-* [ ] ISMS Report customization
+* [x] Non-regression tests and code quality checks
 * [ ] Export set of controls for audit
+* [ ] ISMS Report customization
 * [ ] Configurable control scoring system
 * [ ] Send notifications to Slack with Laravel Notification Framework : https://github.com/sourcentis/deming/discussions/540
 
