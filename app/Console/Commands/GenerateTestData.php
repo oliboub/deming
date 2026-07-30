@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Control;
 use App\Models\Measure;
 use Carbon\Carbon;
+use Database\Seeders\RiskTestDataSeeder;
 use Faker;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ class GenerateTestData extends Command
      *
      * @var string
      */
-    protected $signature = 'deming:generate-tests';
+    protected $signature = 'deming:generate-tests {--locale= : Locale of the generated test data (fr or en)}';
 
     /**
      * The console command description.
@@ -74,16 +75,15 @@ class GenerateTestData extends Command
         // loop on security measures
         $delta = $perPeriod - rand(-$perPeriod / 2, $perPeriod / 2);
 
-        // get language for the faker
-        $lang = getenv('LANG');
-        if (strtolower($lang) === 'fr') {
-            $locale = 'fr_FR';
-        } else {
-            $locale = 'en_US';
+        // get language for the faker : --locale option, fallback to system LANG
+        $locale = strtolower((string) $this->option('locale'));
+        if (! in_array($locale, ['fr', 'en'], true)) {
+            $locale = strtolower(substr((string) getenv('LANG'), 0, 2)) === 'fr' ? 'fr' : 'en';
         }
+        $fakerLocale = $locale === 'fr' ? 'fr_FR' : 'en_US';
 
         // Intialize faker
-        $faker = Faker\Factory::create($locale);
+        $faker = Faker\Factory::create($fakerLocale);
 
         // Loop on security measures
         foreach ($securityControls as $secControl) {
@@ -154,5 +154,9 @@ class GenerateTestData extends Command
             $measure->next_id = $nextMeasure->id;
             $measure->update();
         }
+
+        // Generate test data for risks, action plans and exceptions
+        $this->components->info('Generate risks, action plans and exceptions test data');
+        (new RiskTestDataSeeder())->run($locale);
     }
 }
