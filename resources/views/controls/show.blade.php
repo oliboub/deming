@@ -143,81 +143,80 @@
 <div>
     <br>
 </div>
-    <div data-role="panel" data-title-caption="{{ trans('cruds.measure.title') }}" data-collapsible="false" data-title-icon="<span class='mif-paste'></span>">
+<div data-role="panel" data-title-caption="{{ trans('cruds.measure.title') }}" data-collapsible="false" data-title-icon="<span class='mif-paste'></span>">
 
-        <div>
-            <table id="controls" class="table striped row-hover cell-border"
-                    data-role="table"
-                    data-show-search="false"
-                    data-show-pagination="false"
-                    data-show-rows-steps="false"
-                   >
-			   <thead>
-                    <tr class="row-hover">
-                        <th class="sortable-column sort-asc" width="65%">{{ trans("cruds.welcome.controls") }}</th>
-                        <th class="sortable-column sort-asc" width="65%">{{ trans("cruds.measure.fields.scope") }}</th>
-                        <th class="sortable-column sort-asc" width="5%">{{ trans("cruds.measure.fields.score") }}</th>
-                        <th class="sortable-column sort-asc" width="15%">{{ trans("cruds.measure.fields.plan_date") }}</th>
-                        <th class="sortable-column sort-asc" width="15%">{{ trans("cruds.measure.fields.realisation_date") }}</th>
-				    </tr>
-			    </thead>
-			    <tbody>
-            @foreach($measures as $measure)
-				<tr>
-					<td>
-                        {{ $measure->name }}
-					</td>
-					<td>
-                        <a id="{{ $measure->scope }}" href="/bob/show/{{$measure->id}}">
-                            {{ $measure->scope }}
+	<div>
+		<table id="controls" class="table striped row-hover cell-border"
+				data-role="table"
+				data-show-search="false"
+				data-show-pagination="false"
+				data-show-rows-steps="false"
+				>
+			<thead>
+				<tr class="row-hover">
+					<th class="sortable-column sort-asc" width="65%">{{ trans("cruds.welcome.controls") }}</th>
+					<th class="sortable-column sort-asc" width="65%">{{ trans("cruds.measure.fields.scope") }}</th>
+					<th class="sortable-column sort-asc" width="5%">{{ trans("cruds.measure.fields.score") }}</th>
+					<th class="sortable-column sort-asc" width="15%">{{ trans("cruds.measure.fields.plan_date") }}</th>
+					<th class="sortable-column sort-asc" width="15%">{{ trans("cruds.measure.fields.realisation_date") }}</th>
+				</tr>
+			</thead>
+			<tbody>
+		@foreach($measures as $measure)
+			<tr>
+				<td>
+					{{ $measure->name }}
+				</td>
+				<td>
+					<a id="{{ $measure->scope }}" href="/bob/show/{{$measure->id}}">
+						{{ $measure->scope }}
+					</a>
+				</td>
+				<td>
+					<center id="{{ $measure->score }}">
+						@if ($measure->score==1)
+							&#128545;
+						@elseif ($measure->score==2)
+							&#128528;
+						@elseif ($measure->score==3)
+							<span style="filter: sepia(1) saturate(5) hue-rotate(70deg)">&#128512;</span>
+						@else
+							&#9675; <!-- &#9899; -->
+						@endif
+					</center>
+				</td>
+				<td>
+					<!-- format in red when month passed -->
+					@if (($measure->status === 0)||($measure->status === 1))
+					<a id="{{ $measure->plan_date }}" href="/bob/show/{{$measure->id}}">
+					<b> @if (today()->lte($measure->plan_date))
+							<font color="green">{{ $measure->plan_date }}</font>
+						@else
+							<font color="red">{{ $measure->plan_date }}</font>
+						@endif
+					</b>
+					</a>
+					@else
+						{{ $measure->plan_date }}
+					@endif
+				</td>
+				<td>
+					<b id="{{ $measure->realisation_date }}">
+						<a href="/bob/show/{{$measure->id}}">
+							{{ $measure->realisation_date }}
 						</a>
-					</td>
-                    <td>
-                        <center id="{{ $measure->score }}">
-                            @if ($measure->score==1)
-                                &#128545;
-                            @elseif ($measure->score==2)
-                                &#128528;
-                            @elseif ($measure->score==3)
-                                <span style="filter: sepia(1) saturate(5) hue-rotate(70deg)">&#128512;</span>
-                            @else
-                                &#9675; <!-- &#9899; -->
-                            @endif
-                        </center>
-					</td>
-					<td>
-                        <!-- format in red when month passed -->
-                        @if (($measure->status === 0)||($measure->status === 1))
-                        <a id="{{ $measure->plan_date }}" href="/bob/show/{{$measure->id}}">
-                        <b> @if (today()->lte($measure->plan_date))
-                                <font color="green">{{ $measure->plan_date }}</font>
-                            @else
-                                <font color="red">{{ $measure->plan_date }}</font>
-                            @endif
-                        </b>
-                        </a>
-                        @else
-                            {{ $measure->plan_date }}
-                        @endif
-					</td>
-					<td>
-                        <b id="{{ $measure->realisation_date }}">
-                            <a href="/bob/show/{{$measure->id}}">
-                                {{ $measure->realisation_date }}
-                            </a>
-                            @if ( ($measure->status===1 )&& ((Auth::User()->role===1)||(Auth::User()->role===2)))
-                                &nbsp;
-                                <a href="/bob/make/{{ $measure->id }}">&#8987;</a>
-                            @endif
-                        </b>
-					</td>
-                </tr>
-            @endforeach
-            </tbody>
-            </table>
-        </div>
-        <div>
-        </div>
+						@if ( ($measure->status===1 )&& ((Auth::User()->role===1)||(Auth::User()->role===2)))
+							&nbsp;
+							<a href="/bob/make/{{ $measure->id }}">&#8987;</a>
+						@endif
+					</b>
+				</td>
+			</tr>
+		@endforeach
+		</tbody>
+		</table>
+	</div>
+	<div>
 	</div>
 </div>
 @endsection
