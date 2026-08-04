@@ -21,7 +21,7 @@ services:
       - ./docker/custom/Kernel.php:/var/www/deming/app/Console/Kernel.php
       - ./docker/custom/app.php:/var/www/deming/config/app.php
     ports:
-      - 8000:8000
+      - 8000:80
     depends_on:
       mysql:
         condition: service_healthy

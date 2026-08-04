@@ -64,7 +64,7 @@ class UserController extends Controller
         ]);
 
         // Custom password validation if LDAP is not enabled
-        if (Config::get('app.ldap_domain') === null) {
+        if (! Config::get('app.ldap_enabled')) {
             $validationResponse = $this->validatePassword($request);
             if ($validationResponse) {
                 return $validationResponse;
@@ -80,7 +80,7 @@ class UserController extends Controller
         $user->role = $request->input('role');
         $user->language = $request->input('language');
 
-        if (Config::get('app.ldap_domain') === null) {
+        if (! Config::get('app.ldap_enabled')) {
             $user->password = bcrypt($request->input('password1'));
         }
 
@@ -144,7 +144,7 @@ class UserController extends Controller
         ]);
 
         // Custom password validation if LDAP is not enabled
-        if (Config::get('app.ldap_domain') === null) {
+        if (! Config::get('app.ldap_enabled')) {
             if ($request->input('password1') !== null) {
                 $validationResponse = $this->validatePassword($request);
                 if ($validationResponse) {

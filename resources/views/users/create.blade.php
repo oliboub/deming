@@ -68,7 +68,7 @@
 				</div>
 			</div>
 
-	        @if (Config::get('app.ldap_domain') === null)
+	        @if (! Config::get('app.ldap_enabled'))
 	    	<div class="row">
 	    		<div class="cell-1">
 					<label class="label" for="password">{{ trans('cruds.user.fields.password') }}</label>
