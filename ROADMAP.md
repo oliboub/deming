@@ -10,7 +10,7 @@ This document contains the evolutions planned in 2026
 * [x] Non-regression tests and code quality checks
 * [ ] Restrict user access based on specific domains
 * [ ] Export set of controls for audit
-* [ ] ISMS Report customization
+* [ ] Report customization
 * [ ] Configurable control scoring system
 * [ ] Send notifications to Slack with Laravel Notification Framework : https://github.com/sourcentis/deming/discussions/540
 
