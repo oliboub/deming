@@ -137,7 +137,8 @@ services:
       #   has no access to /opt/deming on the host, the build would fail with
     #   "unable to prepare context: path not found". We reference the already-built image.
     container_name: deming-app
-    #  fixed name, same logic as for mysql below (docker exec, docker logs, etc. without guessing the name)
+      #   fixed name rather than the auto-generated name (<stack>-app-1): easier to
+      #   find for "docker exec" commands (batch, logs, etc.)
     environment:
       - DB_SLEEP=10            # waits 10s before attempting the migration (gives MySQL time to start)
       - TZ=Europe/Paris        # container timezone (affects logs, displayed dates)
@@ -187,7 +188,7 @@ services:
     image: mysql:9.5           # version pinned by the Deming project (tested compatibility)
     container_name: deming-mysql
       #   fixed name rather than the auto-generated name (<stack>-mysql-1): easier to
-    #   find for "docker exec" commands (backup, direct SQL access, etc.)
+      #   find for "docker exec" commands (backup, direct SQL access, etc.)
     environment:
       MYSQL_DATABASE: deming            # name of the database created automatically on first startup
       MYSQL_USER: deming_user           # application user (not root)
