@@ -1,49 +1,217 @@
+# =========================================================================
+# HOST PREPARATION - TO DO BEFORE DEPLOYING THIS PORTAINER STACK
+# =========================================================================
+#
+# 1. Clone the repo at the exact location used in the absolute paths below (/opt/deming):
+#
+#      mkdir -p /opt/deming
+#      cd /opt/deming
+#      git clone https://github.com/sourcentis/deming.git .
+#
+# 2. Create the .env file from the official template (do NOT just "touch" it,
+#    that would give an empty file without the project's default values):
+#
+#      cp .env.example .env
+#      chmod 600 .env
+#      nano .env       # change at least DB_PASSWORD and APP_URL
+#                      # (DB_PASSWORD must match MYSQL_PASSWORD further down in this file)
+#                      #
+#                      # APP_URL = the PUBLIC URL via HAProxy (e.g. https://deming.domain.fr),
+#                      # ASSET_URL = the PUBLIC URL via HAProxy (e.g. https://deming.domain.fr),
+#                      # NOT the internal address http://SERVER_IP:8000 nor http://localhost:8000.
+#                      # HAProxy does the TLS termination and receives public traffic on this URL;
+#                      # Laravel uses it to generate all its internal links (emails, OAuth/Passport
+#                      # redirects, share links...). A wrong value here breaks these links
+#                      # even if the app itself remains accessible.
+#
+# 3. The files docker/custom/deming.php, Kernel.php, app.php already exist in the repo
+#    cloned in step 1 - nothing to create, they are used as-is (no patch).
+#
+# 4. Build the image manually over SSH (Portainer cannot do it itself: it runs
+#    inside its own container and has no access to /opt/deming on the host):
+#
+#      cd /opt/deming
+#      docker build -t deming:local .
+#
+# 5. In Portainer: Stacks -> Add stack -> Web editor -> paste this file -> Deploy the stack.
+#
+# ================================================================
+
+# ================================================================
+# LDAP AUTHENTICATION RESTRICTED TO A GROUP
+# ================================================================
+#
+# Deming does NOT support SAML natively (verified in composer.json / .env.example:
+# only LDAP, Keycloak and generic OIDC exist). For LDAP restricted to a group,
+# add these variables to /opt/deming/.env - WARNING, LDAP_USERS_BASE_DN and LDAP_GROUP
+# do NOT appear in .env.example, they only exist in the code
+# (config/app.php + app/Http/Controllers/Auth/LoginController.php):
+#
+#      LDAP_ENABLED=true
+#      LDAP_FALLBACK_LOCAL=true        # if LDAP fails, still allow local accounts (emergency admin)
+#      LDAP_HOST=ldap.domain.local
+#      LDAP_PORT=389                   # 636 if LDAP_SSL=true
+#      LDAP_USERNAME="cn=svc-deming,dc=domain,dc=local"   # service account for the bind
+#      LDAP_PASSWORD=service_account_password
+#      LDAP_BASE_DN="dc=domain,dc=local"
+#      LDAP_SSL=false
+#      LDAP_TLS=false
+#      LDAP_LOGIN_ATTRIBUTES="uid,cn,mail,sAMAccountName,userPrincipalName"
+#
+#      # Restriction to the group:
+#      LDAP_USERS_BASE_DN="ou=Users,dc=domain,dc=local"   # optional, limits the search OU
+#      LDAP_GROUP="cn=deming-users,ou=Groups,dc=domain,dc=local"  # full DN of the allowed group
+#
+# How it works : the LDAP login does a filter "memberOf = LDAP_GROUP" combined with AND
+# on the search over the login attributes. Only members of this specific group can authenticate,
+# even if LDAP_ENABLED=true for the whole directory. A user outside the group is rejected, even
+# with a valid password.
+#
+# After editing .env: just restart the deming container (no need to rebuild):
+#      docker restart deming-app
+#      (or via Portainer: Containers -> deming-app -> Restart)
+#
+# ================================================================
+# DEMING UPDATE PROCEDURE
+# ================================================================
+#
+# 1. Back up BEFORE any update (see "BACKUP" section below)
+# 2. Fetch the new version of the code:
+#      cd /opt/deming
+#      git pull
+# 3. Rebuild the image manually over SSH (same as the initial install - Portainer
+#    cannot do it itself, see PREPARATION section above):
+#      docker build -t deming:local --no-cache .
+# 4. Restart the stack from Portainer (Stacks -> deming -> Stop then Start),
+#    or over SSH:
+#      docker compose down
+#      docker compose up -d
+#    Database migrations run automatically at startup
+#    (APP_ENV=local in this compose triggers Laravel migrations at boot).
+# 5. Check the logs to confirm everything went well:
+#      docker logs -f deming-app
+#
+# ================================================================
+# WHAT TO BACK UP (regular backup, before each update)
+# ================================================================
+#
+# 1. MySQL database (the most critical) :
+#      docker exec deming-mysql mysqldump -u deming_user -p'password' --no-tablespaces deming \
+#        > backup_$(date +%Y%m%d).sql
+#
+#      --no-tablespaces is required: since MySQL 8.0.21+ (including the 9.5 used here),
+#      mysqldump reads tablespace info via information_schema.FILES by default, which
+#      requires the PROCESS privilege. deming_user is an application account, not root, so
+#      without this flag the dump fails with "Access denied; you need (at least one of) the
+#      PROCESS privilege(s)". The flag works around the problem without elevating the user's rights.
+#
+# 2. deming_storage volume (uploaded documents, imported reference data):
+#      docker run --rm -v deming_deming_storage:/data -v $(pwd)/backups:/backup alpine \
+#        tar czf /backup/storage_$(date +%Y%m%d).tar.gz -C /data .
+#      (adjust "deming_deming_storage" to the actual volume name: "docker volume ls | grep deming")
+#
+# 3. The /opt/deming/.env file itself (passwords, LDAP config, APP_KEY):
+#      simple file copy, e.g. cp /opt/deming/.env ~/backups/env_$(date +%Y%m%d)
+#
+# The dbdata (MySQL) and deming_storage volumes survive a normal stop/restart
+# of the stack - but NOT a removal with the "Remove volumes" option checked
+# (in Portainer) or a "docker compose down -v" in CLI: that also removes the volumes,
+# and therefore all the data. Never check/type that without a recent backup in hand.
+#
+# ================================================================
+
 services:
+  # ============================================================
+  # Main service: the Deming application (PHP + internal Nginx)
+  # Matches the official docker-compose.yml from the sourcentis/deming repo
+  # ============================================================
+  # ABSOLUTE PATHS (/opt/deming/...) instead of relative paths (./...) for the volumes
+  # below: with Portainer (the "Web editor"/"Upload" method), the docker-compose.yml file
+  # is stored in Portainer's internal folder, NOT in the folder where the repo was cloned.
+  # Relative paths would therefore point to the wrong place (missing .env/config files).
+
   deming:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: deming:local
+      #   image built manually over SSH (see PREPARATION section above),
+      #   NO "build: context:" here: Portainer itself runs inside a container and
+      #   has no access to /opt/deming on the host, the build would fail with
+    #   "unable to prepare context: path not found". We reference the already-built image.
+    container_name: deming-app
+    #  fixed name, same logic as for mysql below (docker exec, docker logs, etc. without guessing the name)
     environment:
-      ### PLEASE DISABLE AFTER THE FIRST RUN FOR OPTIMIZATION PRODUCTION
-      - DB_SLEEP=10
-      # Default timezone
-      - TZ=Europe/Paris
-      # Default db connexion
-      - DB_HOST=mysql
-      - APP_ENV=local
-      - DB_DATABASE=deming
-      - DB_USERNAME=deming_user
-      - DB_PASSWORD=demPasssword-123
+      - DB_SLEEP=10            # waits 10s before attempting the migration (gives MySQL time to start)
+      - TZ=Europe/Paris        # container timezone (affects logs, displayed dates)
+      - DB_HOST=mysql          # name of the MySQL service below, NOT 127.0.0.1 (internal Docker DNS resolution)
+      - APP_ENV=local          # needed so migrations/seeders run on first startup
+      - DB_DATABASE=deming     # database name (must match MYSQL_DATABASE of the mysql service)
+      - DB_USERNAME=deming_user   # DB username (must match MYSQL_USER)
+      - DB_PASSWORD=SecretPassword  #  CHANGE before going to production (must match MYSQL_PASSWORD)
       - APP_FORCE_HTTPS=false
+        #   left at false: real TLS is handled by HAProxy in front, not by Deming itself.
+      #   (see official DOCKER.md: "Place Nginx or Traefik in front of the stack and terminate TLS there")
     volumes:
-      - .env:/var/www/deming/.env
-      - ./docker/custom/deming.php:/var/www/deming/config/deming.php
-      - ./docker/custom/Kernel.php:/var/www/deming/app/Console/Kernel.php
-      - ./docker/custom/app.php:/var/www/deming/config/app.php
-    ports:
-      - 8000:80
+      # (same remark as for "context" above: absolute paths /opt/deming/...
+      #  required so this works regardless of where Portainer stores this compose file)
+      - /opt/deming/.env:/var/www/deming/.env
+        #   Laravel config file - MUST EXIST on the host BEFORE the first startup
+        #   (otherwise Docker creates an empty folder instead and the app crashes)
+        #    FILE PERMISSIONS: this .env contains DB passwords in clear text.
+        #   On the host, before deploying: chmod 600 /opt/deming/.env
+        #   (the container runs as root - no USER instruction in the Dockerfile - so
+        #    it can read/write this file regardless of its permissions; the chmod 600 only
+      #    protects against OTHER users/processes on the host, not against the container)
+      - /opt/deming/docker/custom/deming.php:/var/www/deming/config/deming.php
+      #  provided as-is by the official repo, no modification
+      - /opt/deming/docker/custom/Kernel.php:/var/www/deming/app/Console/Kernel.php
+      #  provided as-is by the official repo, no modification
+      - /opt/deming/docker/custom/app.php:/var/www/deming/config/app.php
+      #  provided as-is by the official repo, no modification
+      - deming_storage:/var/www/deming/storage
+        #  named Docker volume (persistent): uploaded documents (storage/docs), imported
+        #  reference data, keys, logs. Needed to avoid losing this data on container rebuild/recreation.
+        # Permissions: no action needed - entrypoint.sh automatically does a chown/chmod
+      #   (www-data:www-data, 775) on this folder EVERY time the container starts.
+    restart: unless-stopped     # automatically restarts the container on crash or server reboot
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_healthy   # waits for MySQL to respond OK to its healthcheck before starting deming
+    ports:
+      - "8000:80"
+        # ↑ officially documented port (DOCKER.md): host 8888 -> container's internal nginx (port 80).
+      #   This is the port HAProxy should target as backend (plain HTTP, HAProxy handles TLS itself).
+
+  # ============================================================
+  # Database service: MySQL, used by Deming
+  # ============================================================
   mysql:
-    image: mysql:9.5
+    image: mysql:9.5           # version pinned by the Deming project (tested compatibility)
+    container_name: deming-mysql
+      #   fixed name rather than the auto-generated name (<stack>-mysql-1): easier to
+    #   find for "docker exec" commands (backup, direct SQL access, etc.)
     environment:
-      MYSQL_DATABASE: deming
-      MYSQL_USER: deming_user
-      MYSQL_PASSWORD: demPasssword-123
-      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+      MYSQL_DATABASE: deming            # name of the database created automatically on first startup
+      MYSQL_USER: deming_user           # application user (not root)
+      MYSQL_PASSWORD: SecretPassword  #  CHANGE THIS, must match DB_PASSWORD of the deming service
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"   # generates a random root password (logs only, not used by the app)
     expose:
       - 3306
+        #   MySQL port accessible only internally (other containers), never published externally.
+      #   NEVER turn this into "ports: - 3306:3306" in production.
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
-
-### PLEASE ENABLE FOR PERSISTENT DATABASE DATA
+      interval: 5s        # checks every 5 seconds
+      timeout: 5s          # gives up if no response within 5 seconds
+      retries: 10           # up to 10 attempts before considering the service failed
+      start_period: 30s    # allows 30s grace period at startup (time to initialize MySQL)
     volumes:
       - dbdata:/var/lib/mysql
+        #   volume from the original official compose: all database data
+      #   (controls, users, action plans...). The most critical to back up regularly.
+
+# ============================================================
+# Declaration of the named Docker volumes used above.
+# ============================================================
 volumes:
-  dbdata:
+  dbdata:            # MySQL data - present in the official compose
+  deming_storage:    # uploaded documents / reference data / keys - added for persistence (backup)
