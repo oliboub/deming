@@ -1,49 +1,217 @@
+# =========================================================================
+# PRÉPARATION SUR L'HÔTE - À FAIRE AVANT DE DÉPLOYER CETTE STACK PORTAINER
+# =========================================================================
+#
+# 1. Cloner le repo à l'endroit exact utilisé dans les chemins absolus ci-dessous (/opt/deming) :
+#
+#      mkdir -p /opt/deming
+#      cd /opt/deming
+#      git clone https://github.com/sourcentis/deming.git .
+#
+# 2. Créer le fichier .env à partir du modèle officiel (ne PAS faire un simple "touch",
+#    ça donnerait un fichier vide sans les valeurs par défaut du projet) :
+#
+#      cp .env.example .env
+#      chmod 600 .env
+#      nano .env      # changer au minimum DB_PASSWORD et APP_URL
+#                      # (DB_PASSWORD doit être identique à MYSQL_PASSWORD plus bas dans ce fichier)
+#                      #
+#                      # APP_URL = l'URL PUBLIQUE via HAProxy (ex: https://deming.domaine.fr),
+#                      # ASSET_URL=l'URL PUBLIQUE via HAProxy (ex: https://deming.domaine.fr),
+#                      # PAS l'adresse interne http://IP_SERVEUR:8000 ni http://localhost:8000.
+#                      # HAProxy fait la terminaison TLS et reçoit le trafic public sur cette URL ;
+#                      # Laravel s'en sert pour générer tous ses liens internes (emails, redirections
+#                      # OAuth/Passport, liens de partage...). Une mauvaise valeur ici casse ces liens
+#                      # même si l'appli elle-même reste accessible.
+#
+# 3. Les fichiers docker/custom/deming.php, Kernel.php, app.php existent déjà dans le repo
+#    cloné à l'étape 1 - rien à créer, ils sont utilisés tels quels (pas de patch).
+#
+# 4. Builder l'image manuellement en SSH (Portainer ne peut pas le faire lui-même : il tourne
+#    dans son propre conteneur et n'a pas accès à /opt/deming sur l'hôte) :
+#
+#      cd /opt/deming
+#      docker build -t deming:local .
+#
+# 5. Dans Portainer : Stacks -> Add stack -> Web editor -> coller ce fichier -> Deploy the stack.
+#
+# ================================================================
+
+# ================================================================
+# AUTHENTIFICATION LDAP RESTREINTE À UN GROUPE
+# ================================================================
+#
+# Deming ne supporte PAS SAML nativement (vérifié dans composer.json / .env.example :
+# seuls LDAP, Keycloak et OIDC générique existent). Pour du LDAP restreint à un groupe,
+# ajouter ces variables dans /opt/deming/.env - ATTENTION, LDAP_USERS_BASE_DN et LDAP_GROUP
+# n'apparaissent PAS dans .env.example, elles existent uniquement dans le code
+# (config/app.php + app/Http/Controllers/Auth/LoginController.php) :
+#
+#      LDAP_ENABLED=true
+#      LDAP_FALLBACK_LOCAL=true        # si LDAP échoue, autorise encore les comptes locaux (admin de secours)
+#      LDAP_HOST=ldap.domaine.local
+#      LDAP_PORT=389                   # 636 si LDAP_SSL=true
+#      LDAP_USERNAME="cn=svc-deming,dc=domaine,dc=local"   # compte de service pour le bind
+#      LDAP_PASSWORD=motdepasse_du_compte_de_service
+#      LDAP_BASE_DN="dc=domaine,dc=local"
+#      LDAP_SSL=false
+#      LDAP_TLS=false
+#      LDAP_LOGIN_ATTRIBUTES="uid,cn,mail,sAMAccountName,userPrincipalName"
+#
+#      # Restriction au groupe :
+#      LDAP_USERS_BASE_DN="ou=Utilisateurs,dc=domaine,dc=local"   # optionnel, limite l'OU de recherche
+#      LDAP_GROUP="cn=deming-users,ou=Groupes,dc=domaine,dc=local"  # DN complet du groupe autorisé
+#
+# Fonctionnement (vu dans LoginController.php) : le login LDAP fait un filtre
+# "memberOf = LDAP_GROUP" combiné en AND avec la recherche sur les attributs de login.
+# Seuls les membres de ce groupe précis peuvent s'authentifier, même si LDAP_ENABLED=true
+# pour tout l'annuaire. Un utilisateur hors groupe se voit refuser, même avec un mot de passe valide.
+#
+# Après modif du .env : redémarrer juste le conteneur deming (pas besoin de rebuild) :
+#      docker restart deming-app
+#      (ou via Portainer : Containers -> deming-app -> Restart)
+#
+# ================================================================
+# PROCÉDURE DE MISE À JOUR DE DEMING
+# ================================================================
+#
+# 1. Sauvegarder AVANT toute mise à jour (voir section "SAUVEGARDE" plus bas)
+# 2. Récupérer la nouvelle version du code :
+#      cd /opt/deming
+#      git pull
+# 3. Rebuilder l'image manuellement en SSH (comme à l'installation initiale - Portainer
+#    ne peut pas le faire lui-même, voir section PRÉPARATION ci-dessus) :
+#      docker build -t deming:local --no-cache .
+# 4. Redémarrer la stack depuis Portainer (Stacks -> deming -> Stop puis Start),
+#    ou en SSH  :
+#      docker compose down
+#      docker compose up -d
+#    Les migrations de base de données se relancent automatiquement au démarrage
+#    (APP_ENV=local dans ce compose déclenche les migrations Laravel au boot).
+# 5. Vérifier les logs pour confirmer que tout s'est bien passé :
+#      docker logs -f deming-app
+#
+# ================================================================
+# CE QU'IL FAUT SAUVEGARDER (backup régulier, avant chaque mise à jour)
+# ================================================================
+#
+# 1. Base de données MySQL (le plus critique) :
+#      docker exec deming-mysql mysqldump -u deming_user -p'mdp' --no-tablespaces deming \
+#        > backup_$(date +%Y%m%d).sql
+#
+#      --no-tablespaces est nécessaire : depuis MySQL 8.0.21+ (dont la 9.5 utilisée ici),
+#      mysqldump lit par défaut les infos de tablespaces via information_schema.FILES, ce qui
+#      demande le privilège PROCESS. deming_user est un compte applicatif, pas root, donc
+#      sans ce flag le dump échoue avec "Access denied; you need (at least one of) the
+#      PROCESS privilege(s)". Le flag contourne le problème sans élever les droits de l'utilisateur.
+#
+# 2. Volume deming_storage (documents uploadés, référentiels importés) :
+#      docker run --rm -v deming_deming_storage:/data -v $(pwd)/backups:/backup alpine \
+#        tar czf /backup/storage_$(date +%Y%m%d).tar.gz -C /data .
+#      (adapte "deming_deming_storage" au vrai nom du volume : "docker volume ls | grep deming")
+#
+# 3. Le fichier /opt/deming/.env lui-même (mots de passe, config LDAP, APP_KEY) :
+#      simple copie de fichier, ex. cp /opt/deming/.env ~/backups/env_$(date +%Y%m%d)
+#
+# Le volume dbdata (MySQL) et deming_storage survivent à un arrêt/redémarrage normal
+# de la stack - mais PAS à une suppression avec l'option "Remove volumes" cochée
+# (dans Portainer) ou un "docker compose down -v" en CLI : ça supprime aussi les volumes,
+# donc toutes les données. Ne coche/tape jamais ça sans backup récent en poche.
+#
+# ================================================================
+
 services:
+  # ============================================================
+  # Service principal : l'application Deming (PHP + Nginx interne)
+  # Conforme au docker-compose.yml officiel du repo sourcentis/deming
+  # ============================================================
+  # CHEMINS ABSOLUS (/opt/deming/...) au lieu de chemins relatifs (./...) pour les volumes
+  # ci-dessous : avec Portainer (méthode "Web editor"/"Upload"), le fichier docker-compose.yml
+  # est stocké dans le dossier interne de Portainer, PAS dans le dossier où on a cloné le repo.
+  # Des chemins relatifs pointeraient donc au mauvais endroit (fichiers .env/config introuvables).
+
   deming:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: deming:local
+      #   image construite manuellement en SSH (voir section PRÉPARATION ci-dessus),
+      #   PAS de "build: context:" ici : Portainer tourne lui-même dans un conteneur et
+      #   n'a pas accès à /opt/deming sur l'hôte, le build échouerait avec
+    #   "unable to prepare context: path not found". On référence l'image déjà construite.
+    container_name: deming-app
+    #  nom fixe, même logique que pour mysql ci-dessous (docker exec, docker logs, etc. sans deviner le nom)
     environment:
-      ### PLEASE DISABLE AFTER THE FIRST RUN FOR OPTIMIZATION PRODUCTION
-      - DB_SLEEP=10
-      # Default timezone
-      - TZ=Europe/Paris
-      # Default db connexion
-      - DB_HOST=mysql
-      - APP_ENV=local
-      - DB_DATABASE=deming
-      - DB_USERNAME=deming_user
-      - DB_PASSWORD=demPasssword-123
+      - DB_SLEEP=10            # attend 10s avant de tenter la migration (laisse le temps à MySQL de démarrer)
+      - TZ=Europe/Paris        # fuseau horaire du conteneur (affecte logs, dates affichées)
+      - DB_HOST=mysql          # nom du service MySQL ci-dessous, PAS 127.0.0.1 (résolution DNS interne Docker)
+      - APP_ENV=local          # nécessaire pour que les migrations/seeders tournent au 1er démarrage
+      - DB_DATABASE=deming     # nom de la base (doit correspondre à MYSQL_DATABASE du service mysql)
+      - DB_USERNAME=deming_user   # identifiant DB (doit correspondre à MYSQL_USER)
+      - DB_PASSWORD=SecretPassword  #  À CHANGER avant mise en prod (doit correspondre à MYSQL_PASSWORD)
       - APP_FORCE_HTTPS=false
+        #   laissé à false : le TLS réel est géré par HAProxy en frontal, pas par Deming lui-même.
+      #   (voir DOCKER.md officiel : "Place Nginx or Traefik in front of the stack and terminate TLS there")
     volumes:
-      - .env:/var/www/deming/.env
-      - ./docker/custom/deming.php:/var/www/deming/config/deming.php
-      - ./docker/custom/Kernel.php:/var/www/deming/app/Console/Kernel.php
-      - ./docker/custom/app.php:/var/www/deming/config/app.php
-    ports:
-      - 8000:80
+      # (même remarque que pour "context" ci-dessus : chemins absolus /opt/deming/...
+      #  requis pour que ça fonctionne peu importe où Portainer stocke ce fichier compose)
+      - /opt/deming/.env:/var/www/deming/.env
+        #   fichier de config Laravel - DOIT EXISTER sur l'hôte AVANT le premier démarrage
+        #   (sinon Docker crée un dossier vide à la place et l'appli plante)
+        #    DROITS FICHIER : ce .env contient les mots de passe DB en clair.
+        #   Sur l'hôte, avant de déployer : chmod 600 /opt/deming/.env
+        #   (le conteneur tourne en root - aucune instruction USER dans le Dockerfile - donc
+        #    il peut lire/écrire ce fichier quels que soient ses droits ; le chmod 600 protège
+      #    juste contre les AUTRES utilisateurs/process de l'hôte, pas contre le conteneur)
+      - /opt/deming/docker/custom/deming.php:/var/www/deming/config/deming.php
+      #  fourni tel quel par le repo officiel, aucune modification
+      - /opt/deming/docker/custom/Kernel.php:/var/www/deming/app/Console/Kernel.php
+      #  fourni tel quel par le repo officiel, aucune modification
+      - /opt/deming/docker/custom/app.php:/var/www/deming/config/app.php
+      #  fourni tel quel par le repo officiel, aucune modification
+      - deming_storage:/var/www/deming/storage
+        #  volume Docker nommé (persistant) : documents uploadés (storage/docs), référentiels importés,
+        #  clés, logs. Nécessaire pour ne pas perdre ces données lors d'un rebuild/recréation du conteneur.
+        # Droits : pas d'action nécessaire - entrypoint.sh fait un chown/chmod automatique
+      #   (www-data:www-data, 775) sur ce dossier à CHAQUE démarrage du conteneur.
+    restart: unless-stopped     # redémarre automatiquement le conteneur en cas de crash ou reboot du serveur
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_healthy   # attend que MySQL réponde OK à son healthcheck avant de démarrer deming
+    ports:
+      - "8000:80"
+        # ↑ port officiel documenté (DOCKER.md) : hôte 8888 -> nginx interne du conteneur (port 80).
+      #   C'est ce port que le HAProxy doit cibler en backend (en HTTP simple, HAProxy gère le TLS lui-même).
+
+  # ============================================================
+  # Service base de données : MySQL, utilisé par Deming
+  # ============================================================
   mysql:
-    image: mysql:9.5
+    image: mysql:9.5           # version fixée par le projet Deming (compatibilité testée)
+    container_name: deming-mysql
+      #   nom fixe plutôt que le nom auto-généré (<stack>-mysql-1) : plus simple à
+    #   retrouver pour les commandes "docker exec" (backup, accès SQL direct, etc.)
     environment:
-      MYSQL_DATABASE: deming
-      MYSQL_USER: deming_user
-      MYSQL_PASSWORD: demPasssword-123
-      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+      MYSQL_DATABASE: deming            # nom de la base créée automatiquement au 1er démarrage
+      MYSQL_USER: deming_user           # utilisateur applicatif (pas root)
+      MYSQL_PASSWORD: SecretPassword  #  À CHANGER, doit être identique à DB_PASSWORD du service deming
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"   # génère un mot de passe root aléatoire (logs uniquement, non utilisé par l'appli)
     expose:
       - 3306
+        #   port MySQL accessible uniquement en interne (autres conteneurs), jamais publié vers l'extérieur.
+      #   Ne JAMAIS transformer en "ports: - 3306:3306" en production.
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
-
-### PLEASE ENABLE FOR PERSISTENT DATABASE DATA
+      interval: 5s        # vérifie toutes les 5 secondes
+      timeout: 5s          # abandonne si pas de réponse en 5 secondes
+      retries: 10           # jusqu'à 10 tentatives avant de considérer le service en échec
+      start_period: 30s    # laisse 30s de grâce au démarrage (le temps d'initialiser MySQL)
     volumes:
       - dbdata:/var/lib/mysql
+        #   volume officiel du compose d'origine : toutes les données de la base
+      #   (contrôles, utilisateurs, plans d'action...). Le plus critique à sauvegarder régulièrement.
+
+# ============================================================
+# Déclaration des volumes Docker nommés utilisés ci-dessus.
+# ============================================================
 volumes:
-  dbdata:
+  dbdata:            # données MySQL - présent dans le compose officiel
+  deming_storage:    # documents uploadés / référentiels / clés - ajout nécessaire pour la persistance (backup)
