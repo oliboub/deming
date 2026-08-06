@@ -57,9 +57,9 @@ The stack is composed of two services orchestrated by Docker Compose:
 
 ```
                     ┌─────────────────────────────────────────────┐
-        HAProxy     │              Docker network                  │
+        HAProxy     │              Docker network                 │
    (TLS termination)│                                             │
-  Host :8000 ──────►│  nginx:80  ──► artisan serve:8000 (PHP)    │
+  Host :8000 ──────►│  nginx:80  ──► artisan serve:8000 (PHP)     │
                     │                        │                    │
                     │               ┌────────▼────────┐           │
                     │               │  mysql:3306     │           │
