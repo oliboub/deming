@@ -783,7 +783,6 @@ The port mapping is inverted. In `docker-compose.yml`:
 ```yaml
 ports:
   - "8000:80"   # ✅ correct  — host 8000 → container nginx 80
-  # - "80:8000" # ❌ wrong    — host 80 → container port 8000 (nothing there)
 ```
 
 ### Container starts but exits silently after cron
@@ -846,13 +845,3 @@ docker compose exec deming php -m | grep -E 'pdo|mbstring|xml|gd'
 docker compose exec deming php artisan env
 ```
 
----
-
-## Useful References
-
-- **Project repository:** https://github.com/sourcentis/deming
-- **Official documentation:** https://sourcentis.github.io/deming/
-- **API documentation:** https://sourcentis.github.io/deming/api/
-- **Issue tracker:** https://github.com/sourcentis/deming/issues
-- **Discussions:** https://github.com/sourcentis/deming/discussions
-- **License:** GPL-3.0
