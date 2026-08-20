@@ -11,8 +11,8 @@ class GlobalSearchController extends Controller
 {
     private $models = [
         \App\Models\Domain::class,
-        \App\Models\Measure::class,
         \App\Models\Control::class,
+        \App\Models\Measure::class,
     ];
 
     public function search(Request $request)
