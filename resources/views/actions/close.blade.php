@@ -61,8 +61,8 @@ form, table {
                     <strong>{{ trans("cruds.action.fields.clauses") }}</strong>
     	    	</div>
         		<div class="cell-4">
-                    @foreach($action->measures as $measure)
-                        <a href="/alice/show/{{ $measure->id }}">{{ $measure->clause }}</a>
+                    @foreach($action->controls as $control)
+                        <a href="/alice/show/{{ $control->id }}">{{ $control->clause }}</a>
                         @if(!$loop->last)
                         ,
                         @endif
