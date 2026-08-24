@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Exports\UsersExport;
 use App\Models\Measure;
 use App\Models\User;
-use Config;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
