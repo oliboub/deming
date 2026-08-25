@@ -25,6 +25,7 @@ class Measure extends Model
         'model',
         'action_plan',
         'plan_date',
+        'scope'
     ];
 
     protected $dates = [
