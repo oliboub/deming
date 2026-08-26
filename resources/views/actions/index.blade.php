@@ -95,14 +95,6 @@
 	    </tr>
 	    </thead>
 	    <tbody>
-	@php
-	    $actionTypeShort = [
-	        'fr' => ['major' => 'Maj', 'minor' => 'Min', 'observation' => 'Obs', 'opportunity' => 'Opp'],
-	        'en' => ['major' => 'Maj', 'minor' => 'Min', 'observation' => 'Obs', 'opportunity' => 'Opp'],
-	        'de' => ['major' => 'Maj', 'minor' => 'Min', 'observation' => 'Beo', 'opportunity' => 'Gel'],
-	    ];
-	    $actionTypeShort = $actionTypeShort[App::getLocale()] ?? $actionTypeShort['en'];
-	@endphp
 	@foreach($actions as $action)
         <tr>
             <td>
@@ -112,13 +104,13 @@
             </td>
             <td>
                 @if ($action->type==1)
-                    <div class="fg-red text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.major') }}">{{ $actionTypeShort['major'] }}</div>
+                    <div class="fg-red text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.major') }}">{{ trans('cruds.action.types_short.major') }}</div>
                 @elseif ($action->type==2)
-                    <div class="fg-orange text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.minor') }}">{{ $actionTypeShort['minor'] }}</div>
+                    <div class="fg-orange text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.minor') }}">{{ trans('cruds.action.types_short.minor') }}</div>
                 @elseif ($action->type==3)
-                    <div class="fg-yellow text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.observation') }}">{{ $actionTypeShort['observation'] }}</div>
+                    <div class="fg-yellow text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.observation') }}">{{ trans('cruds.action.types_short.observation') }}</div>
                 @elseif ($action->type==4)
-                    <div class="fg-green text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.opportunity') }}">{{ $actionTypeShort['opportunity'] }}</div>
+                    <div class="fg-green text-bold" style="font-size: 0.8em;" title="{{ trans('cruds.action.types.opportunity') }}">{{ trans('cruds.action.types_short.opportunity') }}</div>
                 @endif
             </td>
             <td id="{{ $action->status }}">
